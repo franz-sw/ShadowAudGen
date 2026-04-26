@@ -1,0 +1,23 @@
+# Database
+shadowing.db
+*.db
+
+# Output directories
+output/
+output_test/
+shadowing_output/
+.venv
+.idea
+
+/input
+
+# Environment
+.env
+
+# Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Logs
+*.log
