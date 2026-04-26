@@ -181,6 +181,32 @@ class Exporter:
 
         return output_files
 
+    def get_exported_audio_files(self, default_json: str = None) -> Dict[str, str]:
+        if default_json:
+            self.db.load_from_json(default_json)
+        
+        entries = self.db.get_all_entries()
+        if not entries:
+            return {}
+
+        grouped = {}
+        for entry in entries:
+            topic = entry["topic"]
+            if topic not in grouped:
+                grouped[topic] = []
+            grouped[topic].append(entry)
+
+        audio_files = {}
+        for topic, topic_entries in grouped.items():
+            topic_slug = self._get_topic_slug(topic)
+            topic_dir = self.output_dir / topic_slug
+            combined_audio_path = topic_dir / "export" / f"{topic_slug}_full.mp3"
+            
+            if combined_audio_path.exists():
+                audio_files[topic] = str(combined_audio_path)
+
+        return audio_files
+
 
 def export_all():
     exporter = Exporter()

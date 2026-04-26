@@ -45,5 +45,12 @@ RATE_LIMIT_DELAY = 1.0
 # Global segment break (applied on top of multiplier gap)
 SEGMENT_BREAK_MS = 500
 
+# Castopod Configuration
+CASTOPOD_HOST = os.getenv("CASTOPOD_HOST")
+CASTOPOD_PODCAST_ID = os.getenv("CASTOPOD_PODCAST_ID")
+CASTOPOD_USER_ID = os.getenv("CASTOPOD_USER_ID")
+CASTOPOD_AUTH_USERNAME = os.getenv("CASTOPOD_AUTH_USERNAME")
+CASTOPOD_AUTH_PASSWORD = os.getenv("CASTOPOD_AUTH_PASSWORD")
+
 # Language settings
 DEFAULT_LANGUAGE = "hu"
