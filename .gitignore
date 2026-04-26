@@ -10,6 +10,7 @@ shadowing_output/
 .idea
 
 /input
+/res
 
 # Environment
 .env
