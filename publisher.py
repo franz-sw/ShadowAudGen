@@ -76,6 +76,7 @@ class CastopodPublisher:
             name = mp3.stem
             if "[PLAIN]" in name:
                 files["plain_mp3"] = str(mp3)
+                files["plain_base_name"] = name
                 base_name = name.replace("[PLAIN]", "")
             else:
                 files["shadowing_mp3"] = str(mp3)
@@ -298,7 +299,7 @@ def publish_topic_episodes(topic: str, entries: List[dict], publish: bool = Fals
         print(f"Shadowing episode uploaded: {base_title} - Shadowing")
 
     if "plain_mp3" in export_files:
-        plain_title = f"{base_title}[PLAIN]"
+        plain_title = export_files.get("plain_base_name", entries[0]["topic"])
         slug_plain = f"{plain_title.lower().replace(' ', '-')}"
         slug_plain = re.sub(r'[^a-z0-9-]', '', slug_plain)
 
