@@ -14,6 +14,17 @@ class Exporter:
     def __init__(self):
         self.db = ShadowingDB()
         self.output_dir = Path(OUTPUT_DIR)
+        self.episode_counter_file = Path(__file__).parent / "res" / "episode_counter.txt"
+
+    def _get_next_episode_number(self) -> int:
+        counter_file = self.episode_counter_file
+        if counter_file.exists():
+            current = int(counter_file.read_text().strip())
+        else:
+            current = 0
+        next_num = current + 1
+        counter_file.write_text(str(next_num))
+        return next_num
 
     def _get_topic_slug(self, topic: str) -> str:
         return re.sub(r'[^a-zA-Z0-9]+', '_', topic.lower().strip())
@@ -61,7 +72,8 @@ class Exporter:
         shadow_files.sort(key=lambda x: x[0])
         plain_files.sort(key=lambda x: x[0])
 
-        base_name = f"{AUDIO_FILE_PREFIX} - {topic}"
+        episode_num = self._get_next_episode_number()
+        base_name = f"{episode_num} - {AUDIO_FILE_PREFIX} - {topic}"
         export_dir = topic_dir / "export"
         export_dir.mkdir(parents=True, exist_ok=True)
 
@@ -89,7 +101,7 @@ class Exporter:
 
         combined_plain += break_sil + outro
 
-        plain_path = export_dir / f"{base_name}[PLAIN].mp3"
+        plain_path = export_dir / f"{episode_num} - {AUDIO_FILE_PREFIX}[PLAIN] - {topic}.mp3"
         combined_plain.export(str(plain_path), format="mp3")
         print(f"  Combined {len(plain_files)} question+answer audio pairs into {plain_path.name}")
 
@@ -296,14 +308,16 @@ class Exporter:
         for topic, topic_entries in grouped.items():
             topic_slug = self._get_topic_slug(topic)
             topic_dir = self.output_dir / topic_slug
-            base_name = f"{AUDIO_FILE_PREFIX} - {topic}"
-            combined_audio_path = topic_dir / "export" / f"{base_name}.mp3"
-            plain_audio_path = topic_dir / "export" / f"{base_name}[PLAIN].mp3"
+            export_dir = topic_dir / "export"
             
-            if combined_audio_path.exists():
-                audio_files[topic] = str(combined_audio_path)
-            if plain_audio_path.exists():
-                audio_files[f"{topic}_plain"] = str(plain_audio_path)
+            if export_dir.exists():
+                shadowing_files = list(export_dir.glob("* - [MK1]*.mp3"))
+                plain_files = list(export_dir.glob("* - [MK1][PLAIN]*.mp3"))
+                
+                if shadowing_files:
+                    audio_files[topic] = str(shadowing_files[-1])
+                if plain_files:
+                    audio_files[f"{topic}_plain"] = str(plain_files[-1])
 
         return audio_files
 
