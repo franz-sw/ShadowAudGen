@@ -14,7 +14,7 @@ class FTPClient:
         self.port = int(os.getenv("PORT", 21))
         self.username = os.getenv("FTP_USERNAME")
         self.password = os.getenv("FTP_PASSWORD")
-        self.remote_dir = os.getenv("FTP_REMOTE_DIRECTORY", "/site")
+        self.remote_dir = os.getenv("FTP_REMOTE_DIRECTORY")
         self.base_url = SHADOWING_SOURCES_BASE_URL
 
     def upload_file(self, local_path: str, remote_filename: str = None) -> Optional[str]:
@@ -149,12 +149,12 @@ class CastopodPublisher:
             if chapters_file:
                 with open(chapters_file, "rb") as chapters:
                     files["chapters_file"] = (Path(chapters_file).name, chapters, "application/json")
-                    data["chapters_choice"] = "upload-file"
+                    data["chapters-choice"] = "upload-file"
 
             if transcript_file:
                 with open(transcript_file, "rb") as transcript:
                     files["transcript_file"] = (Path(transcript_file).name, transcript, "application/x-subrip")
-                    data["transcript_choice"] = "upload-file"
+                    data["transcript-choice"] = "upload-file"
 
             response = requests.post(url, files=files, data=data, auth=self._get_auth())
 
