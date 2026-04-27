@@ -86,11 +86,7 @@ class Exporter:
         export_dir = topic_dir / "export"
         export_dir.mkdir(parents=True, exist_ok=True)
 
-        cover_path = None
-        if (res_dir / "cover_x2.png").exists():
-            cover_path = res_dir / "cover_x2.png"
-        elif (res_dir / "cover.jpeg").exists():
-            cover_path = res_dir / "cover.jpeg"
+        cover_path = (res_dir / "cover.jpeg")
 
         combined_shadowing = AudioSegment.empty()
         shadow_chapters = []
