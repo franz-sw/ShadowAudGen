@@ -1,5 +1,6 @@
 import json
 import re
+import unicodedata
 from pathlib import Path
 from typing import List, Dict, Optional
 
@@ -28,6 +29,18 @@ class Exporter:
 
     def _get_topic_slug(self, topic: str) -> str:
         return re.sub(r'[^a-zA-Z0-9]+', '_', topic.lower().strip())
+
+    def _clean_accented_to_ascii(self, text: str) -> str:
+        normalized = unicodedata.normalize('NFKD', text)
+        return normalized.encode('ascii', 'ignore').decode('ascii')
+
+    def _get_pdf_filename(self, topic: str) -> str:
+        full_title = f"{AUDIO_FILE_PREFIX} - {topic}"
+        ascii_title = self._clean_accented_to_ascii(full_title)
+        clean_title = re.sub(r'[^a-zA-Z0-9 _-]', '_', ascii_title)
+        clean_title = re.sub(r'[_-]+', '_', clean_title)
+        clean_title = clean_title.strip('_- ')
+        return f"{clean_title}.pdf"
 
     def _format_srt_time(self, ms: int) -> str:
         seconds, milliseconds = divmod(int(ms), 1000)
@@ -224,7 +237,7 @@ class Exporter:
         topic_dir = self.output_dir / topic_slug
         export_subdir = topic_dir / "export"
         export_subdir.mkdir(parents=True, exist_ok=True)
-        pdf_path = export_subdir / f"{topic_slug}.pdf"
+        pdf_path = export_subdir / self._get_pdf_filename(topic)
 
         class TopicPDF(FPDF):
             def footer(self):
