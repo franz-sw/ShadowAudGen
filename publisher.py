@@ -161,6 +161,11 @@ class CastopodPublisher:
                     files["transcript_file"] = (Path(transcript_file).name, transcript, "application/x-subrip")
                     data["transcript-choice"] = "upload-file"
 
+            print(f"Uploading episode to {url}")
+            print(f"Files: {list(files.keys())}")
+            print(f"Data: {data}")
+            print(f"Auth: {self._get_auth()[0]}")
+
             response = requests.post(url, files=files, data=data, auth=self._get_auth())
 
         if response.status_code == 201:
