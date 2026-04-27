@@ -1,6 +1,6 @@
 import os
 import re
-import ftplib
+import paramiko
 import requests
 from pathlib import Path
 from typing import Optional, Tuple, List
@@ -11,11 +11,16 @@ from config import CASTOPOD_HOST, CASTOPOD_PODCAST_ID, CASTOPOD_USER_ID, CASTOPO
 class FTPClient:
     def __init__(self):
         self.server = os.getenv("FTP_SERVER")
-        self.port = int(os.getenv("PORT", 21))
+        self.port = 23
         self.username = os.getenv("FTP_USERNAME")
         self.password = os.getenv("FTP_PASSWORD")
         self.remote_dir = os.getenv("FTP_REMOTE_DIRECTORY")
         self.base_url = SHADOWING_SOURCES_BASE_URL
+
+    def _connect(self):
+        transport = paramiko.Transport((self.server, self.port))
+        transport.connect(username=self.username, password=self.password)
+        return paramiko.SFTPClient.from_transport(transport)
 
     def upload_file(self, local_path: str, remote_filename: str = None) -> Optional[str]:
         if not all([self.server, self.username, self.password]):
@@ -26,15 +31,17 @@ class FTPClient:
             remote_filename = Path(local_path).name
 
         try:
-            with ftplib.FTP() as ftp:
-                ftp.connect(self.server, self.port)
-                ftp.login(self.username, self.password)
-                if self.remote_dir:
-                    ftp.cwd(self.remote_dir)
-                with open(local_path, "rb") as f:
-                    ftp.storbinary(f"STOR {remote_filename}", f)
-                print(f"Uploaded {remote_filename} to FTP")
-                return f"{self.base_url}/{remote_filename}"
+            sftp = self._connect()
+            if self.remote_dir:
+                try:
+                    sftp.mkdir(self.remote_dir)
+                except IOError:
+                    pass
+                sftp.chdir(self.remote_dir)
+            sftp.put(local_path, remote_filename)
+            sftp.close()
+            print(f"Uploaded {remote_filename} to FTP")
+            return f"{self.base_url}/{remote_filename}"
         except Exception as e:
             print(f"FTP upload failed: {e}")
             return None
@@ -180,13 +187,13 @@ class CastopodPublisher:
             "created_by": int(self.user_id),
             "updated_by": int(self.user_id),
         }
-
-        response = requests.post(url, data=data, auth=self._get_auth())
-
-        if response.status_code == 200:
-            return response.json()
-        else:
-            raise Exception(f"Failed to publish episode: {response.status_code} - {response.text}")
+# disabled during development
+        # response = requests.post(url, data=data, auth=self._get_auth())
+        #
+        # if response.status_code == 200:
+        #     return response.json()
+        # else:
+        #     raise Exception(f"Failed to publish episode: {response.status_code} - {response.text}")
 
     def upload_and_publish_episode(
             self,
