@@ -147,25 +147,27 @@ class CastopodPublisher:
                 "parental_advisory": "clean",
             }
 
-            # if cover_file:
-            #     with open(cover_file, "rb") as cover:
-            #         files["cover"] = (Path(cover_file).name, cover, "image/jpeg")
-            #
-            # if chapters_file:
-            #     with open(chapters_file, "rb") as chapters:
-            #         files["chapters_file"] = (Path(chapters_file).name, chapters, "application/json")
-            #         data["chapters-choice"] = "upload-file"
-            #
-            # if transcript_file:
-            #     with open(transcript_file, "rb") as transcript:
-            #         files["transcript_file"] = (Path(transcript_file).name, transcript, "application/x-subrip")
-            #         data["transcript-choice"] = "upload-file"
+            if cover_file:
+                with open(cover_file, "rb") as cover:
+                    files["cover"] = (Path(cover_file).name, cover, "image/jpeg")
+
+            if chapters_file:
+                with open(chapters_file, "rb") as chapters:
+                    files["chapters_file"] = (Path(chapters_file).name, chapters, "application/json")
+                    data["chapters-choice"] = "upload-file"
+
+            if transcript_file:
+                with open(transcript_file, "rb") as transcript:
+                    files["transcript_file"] = (Path(transcript_file).name, transcript, "application/x-subrip")
+                    data["transcript-choice"] = "upload-file"
 
             response = requests.post(url, files=files, data=data, auth=self._get_auth())
 
         if response.status_code == 201:
             return response.json()
         else:
+            print(f"Response status: {response.status_code}")
+            print(f"Response text: {response.text}")
             raise Exception(f"Failed to upload episode: {response.status_code} - {response.text}")
 
     def publish_episode(self, episode_id: int, publication_method: str = "now") -> dict:
