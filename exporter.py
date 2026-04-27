@@ -29,6 +29,12 @@ class Exporter:
     def _get_topic_slug(self, topic: str) -> str:
         return re.sub(r'[^a-zA-Z0-9]+', '_', topic.lower().strip())
 
+    def _format_srt_time(self, ms: int) -> str:
+        seconds, milliseconds = divmod(int(ms), 1000)
+        minutes, seconds = divmod(seconds, 60)
+        hours, minutes = divmod(minutes, 60)
+        return f"{hours:02d}:{minutes:02d}:{seconds:02d},{milliseconds:03d}"
+
     def _combine_shadowing_audios(self, topic: str, entries: List[Dict]) -> Optional[str]:
         topic_slug = self._get_topic_slug(topic)
         topic_dir = self.output_dir / topic_slug
@@ -65,6 +71,8 @@ class Exporter:
                     print(f"  Warning: Initial answer audio for entry {entry_id} is missing. Skipping combined export for topic '{topic}'.")
                     return None
 
+        entry_map = {e.get("id"): e for e in entries if e.get("id")}
+
         if not shadow_files:
             return None
 
@@ -74,13 +82,50 @@ class Exporter:
 
         episode_num = self._get_next_episode_number()
         base_name = f"{episode_num} - {AUDIO_FILE_PREFIX} - {topic}"
+        plain_base_name = f"{episode_num} - {AUDIO_FILE_PREFIX}[PLAIN] - {topic}"
         export_dir = topic_dir / "export"
         export_dir.mkdir(parents=True, exist_ok=True)
 
+        cover_path = None
+        if (res_dir / "cover_x2.png").exists():
+            cover_path = res_dir / "cover_x2.png"
+        elif (res_dir / "cover.jpeg").exists():
+            cover_path = res_dir / "cover.jpeg"
+
         combined_shadowing = AudioSegment.empty()
-        for (_, qf), (_, sf) in zip(question_files, shadow_files):
-            combined_shadowing += AudioSegment.from_mp3(str(qf))
-            combined_shadowing += AudioSegment.from_mp3(str(sf))
+        shadow_chapters = []
+        shadow_srt = []
+        current_time_shadow = 0
+        srt_idx_shadow = 1
+
+        for (eid, qf), (_, sf) in zip(question_files, shadow_files):
+            q_audio = AudioSegment.from_mp3(str(qf))
+            s_audio = AudioSegment.from_mp3(str(sf))
+            q_dur = len(q_audio)
+            s_dur = len(s_audio)
+            
+            entry = entry_map.get(eid, {})
+            q_text = entry.get("question", "")
+            a_text = entry.get("answer", "")
+            
+            shadow_chapters.append({
+                "startTime": current_time_shadow / 1000.0,
+                "title": q_text
+            })
+            
+            q_start = current_time_shadow
+            q_end = current_time_shadow + q_dur
+            shadow_srt.append(f"{srt_idx_shadow}\n{self._format_srt_time(q_start)} --> {self._format_srt_time(q_end)}\n{q_text}\n")
+            srt_idx_shadow += 1
+            
+            s_start = q_end
+            s_end = q_end + s_dur
+            shadow_srt.append(f"{srt_idx_shadow}\n{self._format_srt_time(s_start)} --> {self._format_srt_time(s_end)}\n{a_text}\n")
+            srt_idx_shadow += 1
+            
+            combined_shadowing += q_audio
+            combined_shadowing += s_audio
+            current_time_shadow += q_dur + s_dur
 
         combined_shadowing = combined_shadowing.normalize(headroom=0.1)
 
@@ -89,21 +134,85 @@ class Exporter:
         combined_shadowing += break_sil + outro
 
         shadowing_path = export_dir / f"{base_name}.mp3"
-        combined_shadowing.export(str(shadowing_path), format="mp3")
+        export_kwargs_shadowing = {
+            "format": "mp3",
+            "tags": {"artist": "Árnyékmester", "title": base_name}
+        }
+        if cover_path:
+            export_kwargs_shadowing["cover"] = str(cover_path)
+            
+        combined_shadowing.export(str(shadowing_path), **export_kwargs_shadowing)
         print(f"  Combined {len(shadow_files)} question+shadowing audio pairs into {shadowing_path.name}")
+        
+        # Save shadow JSON chapters
+        shadow_json_path = export_dir / f"{base_name}.json"
+        with open(shadow_json_path, "w", encoding="utf-8") as f:
+            json.dump({"version": "1.2.0", "chapters": shadow_chapters}, f, indent=2, ensure_ascii=False)
+            
+        # Save shadow SRT
+        shadow_srt_path = export_dir / f"{base_name}.srt"
+        with open(shadow_srt_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(shadow_srt))
 
         combined_plain = AudioSegment.empty()
-        for (_, qf), (_, pf) in zip(question_files, plain_files):
-            combined_plain += AudioSegment.from_mp3(str(qf))
-            combined_plain += AudioSegment.from_mp3(str(pf))
+        plain_chapters = []
+        plain_srt = []
+        current_time_plain = 0
+        srt_idx_plain = 1
+
+        for (eid, qf), (_, pf) in zip(question_files, plain_files):
+            q_audio = AudioSegment.from_mp3(str(qf))
+            p_audio = AudioSegment.from_mp3(str(pf))
+            q_dur = len(q_audio)
+            p_dur = len(p_audio)
+            
+            entry = entry_map.get(eid, {})
+            q_text = entry.get("question", "")
+            a_text = entry.get("answer", "")
+            
+            plain_chapters.append({
+                "startTime": current_time_plain / 1000.0,
+                "title": q_text
+            })
+            
+            q_start = current_time_plain
+            q_end = current_time_plain + q_dur
+            plain_srt.append(f"{srt_idx_plain}\n{self._format_srt_time(q_start)} --> {self._format_srt_time(q_end)}\n{q_text}\n")
+            srt_idx_plain += 1
+            
+            p_start = q_end
+            p_end = q_end + p_dur
+            plain_srt.append(f"{srt_idx_plain}\n{self._format_srt_time(p_start)} --> {self._format_srt_time(p_end)}\n{a_text}\n")
+            srt_idx_plain += 1
+            
+            combined_plain += q_audio
+            combined_plain += p_audio
+            current_time_plain += q_dur + p_dur
 
         combined_plain = combined_plain.normalize(headroom=0.1)
 
         combined_plain += break_sil + outro
 
-        plain_path = export_dir / f"{episode_num} - {AUDIO_FILE_PREFIX}[PLAIN] - {topic}.mp3"
-        combined_plain.export(str(plain_path), format="mp3")
+        plain_path = export_dir / f"{plain_base_name}.mp3"
+        export_kwargs_plain = {
+            "format": "mp3",
+            "tags": {"artist": "Árnyékmester", "title": plain_base_name}
+        }
+        if cover_path:
+            export_kwargs_plain["cover"] = str(cover_path)
+            
+        combined_plain.export(str(plain_path), **export_kwargs_plain)
         print(f"  Combined {len(plain_files)} question+answer audio pairs into {plain_path.name}")
+        
+        # Save plain JSON chapters
+        plain_json_path = export_dir / f"{plain_base_name}.json"
+        with open(plain_json_path, "w", encoding="utf-8") as f:
+            json.dump({"version": "1.2.0", "chapters": plain_chapters}, f, indent=2, ensure_ascii=False)
+            
+        # Save plain SRT
+        plain_srt_path = export_dir / f"{plain_base_name}.srt"
+        with open(plain_srt_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(plain_srt))
 
         return str(shadowing_path)
 
