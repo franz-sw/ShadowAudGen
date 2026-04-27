@@ -1,6 +1,5 @@
 import os
 import re
-import unicodedata
 import paramiko
 import requests
 from pathlib import Path
@@ -58,12 +57,6 @@ class CastopodPublisher:
 
         if not all([self.host, self.podcast_id, self.user_id, self.username, self.password]):
             raise ValueError("Missing required Castopod configuration. Check .env file.")
-
-    def _clean_slug(self, text: str) -> str:
-        normalized = unicodedata.normalize('NFKD', text)
-        ascii_text = normalized.encode('ascii', 'ignore').decode('ascii')
-        slug = re.sub(r'[^a-z0-9]+', '-', ascii_text.lower()).strip('-')
-        return slug
 
     def _get_auth(self):
         return (self.username, self.password)
@@ -141,7 +134,7 @@ class CastopodPublisher:
             transcript_file: Optional[str] = None,
     ) -> dict:
         """Upload and create a new episode."""
-        slug = self._clean_slug(slug)
+        slug = re.sub(r'[^a-z0-9]+', '-', slug.lower()).strip('-')
         url = f"{self.host}/episodes"
 
         with open(audio_file, "rb") as audio:
@@ -290,7 +283,8 @@ def publish_topic_episodes(topic: str, entries: List[dict], publish: bool = Fals
     base_title = export_files.get("base_name", entries[0]["topic"])
 
     if "shadowing_mp3" in export_files:
-            slug_shadow = publisher._clean_slug(base_title)
+        slug_shadow = f"{base_title.lower().replace(' ', '-')}"
+        slug_shadow = re.sub(r'[^a-z0-9-]', '', slug_shadow)
 
         result = publisher.upload_and_publish_episode(
             title=f"{base_title}",
@@ -306,7 +300,8 @@ def publish_topic_episodes(topic: str, entries: List[dict], publish: bool = Fals
 
     if "plain_mp3" in export_files:
         plain_title = export_files.get("plain_base_name", entries[0]["topic"])
-            slug_plain = publisher._clean_slug(plain_title)
+        slug_plain = f"{plain_title.lower().replace(' ', '-')}"
+        slug_plain = re.sub(r'[^a-z0-9-]', '', slug_plain)
 
         plain_description = publisher._generate_description(entries, pdf_url)
 
