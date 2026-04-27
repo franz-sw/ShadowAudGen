@@ -35,7 +35,7 @@ class Exporter:
         hours, minutes = divmod(minutes, 60)
         return f"{hours:02d}:{minutes:02d}:{seconds:02d},{milliseconds:03d}"
 
-    def _combine_shadowing_audios(self, topic: str, entries: List[Dict]) -> Optional[tuple]:
+    def _combine_shadowing_audios(self, topic: str, entries: List[Dict]) -> Optional[str]:
         topic_slug = self._get_topic_slug(topic)
         topic_dir = self.output_dir / topic_slug
         shadow_audio_dir = topic_dir / "shadowing"
@@ -210,7 +210,7 @@ class Exporter:
         with open(plain_srt_path, "w", encoding="utf-8") as f:
             f.write("\n".join(plain_srt))
 
-        return str(shadowing_path), episode_num
+        return str(shadowing_path)
 
     def _split_sentences(self, text: str) -> List[str]:
         """Split text into sentences."""
@@ -219,17 +219,11 @@ class Exporter:
         sentences = re.split(r'(?<=[.!?])\s+', text.strip())
         return [s.strip() for s in sentences if s.strip()]
 
-    def _export_topic_to_pdf(self, topic: str, topic_entries: List[Dict], combined_audio_path: Optional[str] = None, include_translations: bool = False, episode_num: int = None) -> str:
+    def _export_topic_to_pdf(self, topic: str, topic_entries: List[Dict], combined_audio_path: Optional[str] = None, include_translations: bool = False) -> str:
         topic_slug = self._get_topic_slug(topic)
         topic_dir = self.output_dir / topic_slug
         export_subdir = topic_dir / "export"
         export_subdir.mkdir(parents=True, exist_ok=True)
-        
-        if episode_num is not None:
-            pdf_title = f"{episode_num} - {AUDIO_FILE_PREFIX} - {topic}"
-        else:
-            pdf_title = topic
-        
         pdf_path = export_subdir / f"{topic_slug}.pdf"
 
         class TopicPDF(FPDF):
@@ -245,7 +239,7 @@ class Exporter:
         pdf.add_font("Segoe UI", "I", r"C:\Windows\Fonts\segoeuii.ttf", uni=True)
         pdf.add_page()
         pdf.set_font("Segoe UI", "B", 16)
-        pdf.cell(0, 10, pdf_title, ln=True, align="C")
+        pdf.cell(0, 10, topic, ln=True, align="C")
         pdf.ln(5)
         pdf.set_font("Segoe UI", size=11)
 
@@ -293,7 +287,7 @@ class Exporter:
         pdf.add_page()
         if include_translations:
             pdf.set_font("Segoe UI", "B", 16)
-            pdf.cell(0, 10, f"{pdf_title} - German Translation", ln=True, align="C")
+            pdf.cell(0, 10, f"{topic} - German Translation", ln=True, align="C")
             pdf.ln(5)
 
             for entry in topic_entries:
@@ -364,9 +358,7 @@ class Exporter:
             export_subdir.mkdir(parents=True, exist_ok=True)
             out_path = export_subdir / f"{topic_slug}.md"
 
-            combined_audio_result = self._combine_shadowing_audios(topic, topic_entries)
-            combined_audio_path = combined_audio_result[0] if combined_audio_result else None
-            episode_num = combined_audio_result[1] if combined_audio_result else None
+            combined_audio_path = self._combine_shadowing_audios(topic, topic_entries)
 
             metadata = topic_entries[0]
             vocabulary = metadata.get("vocabulary", [])
@@ -397,7 +389,7 @@ class Exporter:
             print(f"Exported {len(topic_entries)} entries to {out_path}")
             output_files.append(str(out_path))
 
-            pdf_path = self._export_topic_to_pdf(topic, topic_entries, combined_audio_path, include_translations, episode_num)
+            pdf_path = self._export_topic_to_pdf(topic, topic_entries, combined_audio_path, include_translations)
             output_files.append(pdf_path)
 
         return output_files
