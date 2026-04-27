@@ -81,8 +81,8 @@ class Exporter:
         plain_files.sort(key=lambda x: x[0])
 
         episode_num = self._get_next_episode_number()
-        base_name = f"{episode_num} - {topic}"
-        plain_base_name = f"{episode_num} - {topic} [PLAIN]"
+        base_name = f"{episode_num} - {AUDIO_FILE_PREFIX} - {topic}"
+        plain_base_name = f"{episode_num} - {AUDIO_FILE_PREFIX}[PLAIN] - {topic}"
         export_dir = topic_dir / "export"
         export_dir.mkdir(parents=True, exist_ok=True)
 
