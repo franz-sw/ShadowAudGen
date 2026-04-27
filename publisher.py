@@ -279,12 +279,14 @@ def publish_topic_episodes(topic: str, entries: List[dict], publish: bool = Fals
 
     results = {}
 
+    base_title = export_files.get("base_name", entries[0]["topic"])
+
     if "shadowing_mp3" in export_files:
-        slug_shadow = f"{entries[0]['topic'].lower().replace(' ', '-')}-shadowing"
+        slug_shadow = f"{base_title.lower().replace(' ', '-')}-shadowing"
         slug_shadow = re.sub(r'[^a-z0-9-]', '', slug_shadow)
 
         result = publisher.upload_and_publish_episode(
-            title=f"{entries[0]['topic']} - Shadowing",
+            title=f"{base_title} - Shadowing",
             slug=slug_shadow,
             audio_file=export_files["shadowing_mp3"],
             description=description,
@@ -293,16 +295,16 @@ def publish_topic_episodes(topic: str, entries: List[dict], publish: bool = Fals
             publish=publish,
         )
         results["shadowing"] = result
-        print(f"Shadowing episode uploaded: {entries[0]['topic']} - Shadowing")
+        print(f"Shadowing episode uploaded: {base_title} - Shadowing")
 
     if "plain_mp3" in export_files:
-        slug_plain = f"{entries[0]['topic'].lower().replace(' ', '-')}-plain"
+        slug_plain = f"{base_title.lower().replace(' ', '-')}-plain"
         slug_plain = re.sub(r'[^a-z0-9-]', '', slug_plain)
 
         plain_description = publisher._generate_description(entries, pdf_url)
 
         result = publisher.upload_and_publish_episode(
-            title=f"{entries[0]['topic']} - Plain",
+            title=f"{base_title} - Plain",
             slug=slug_plain,
             audio_file=export_files["plain_mp3"],
             description=plain_description,
@@ -311,6 +313,6 @@ def publish_topic_episodes(topic: str, entries: List[dict], publish: bool = Fals
             publish=publish,
         )
         results["plain"] = result
-        print(f"Plain episode uploaded: {entries[0]['topic']} - Plain")
+        print(f"Plain episode uploaded: {base_title} - Plain")
 
     return results
