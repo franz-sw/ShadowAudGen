@@ -1,9 +1,43 @@
 import os
+import re
+import ftplib
 import requests
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Tuple, List
 
-from config import CASTOPOD_HOST, CASTOPOD_PODCAST_ID, CASTOPOD_USER_ID, CASTOPOD_AUTH_USERNAME, CASTOPOD_AUTH_PASSWORD
+from config import CASTOPOD_HOST, CASTOPOD_PODCAST_ID, CASTOPOD_USER_ID, CASTOPOD_AUTH_USERNAME, CASTOPOD_AUTH_PASSWORD, SHADOWING_SOURCES_BASE_URL
+
+
+class FTPClient:
+    def __init__(self):
+        self.server = os.getenv("FTP_SERVER")
+        self.port = int(os.getenv("PORT", 21))
+        self.username = os.getenv("FTP_USERNAME")
+        self.password = os.getenv("FTP_PASSWORD")
+        self.remote_dir = os.getenv("FTP_REMOTE_DIRECTORY", "/site")
+        self.base_url = SHADOWING_SOURCES_BASE_URL
+
+    def upload_file(self, local_path: str, remote_filename: str = None) -> Optional[str]:
+        if not all([self.server, self.username, self.password]):
+            print("FTP configuration missing. Skipping upload.")
+            return None
+
+        if remote_filename is None:
+            remote_filename = Path(local_path).name
+
+        try:
+            with ftplib.FTP() as ftp:
+                ftp.connect(self.server, self.port)
+                ftp.login(self.username, self.password)
+                if self.remote_dir:
+                    ftp.cwd(self.remote_dir)
+                with open(local_path, "rb") as f:
+                    ftp.storbinary(f"STOR {remote_filename}", f)
+                print(f"Uploaded {remote_filename} to FTP")
+                return f"{self.base_url}/{remote_filename}"
+        except Exception as e:
+            print(f"FTP upload failed: {e}")
+            return None
 
 
 class CastopodPublisher:
@@ -20,6 +54,67 @@ class CastopodPublisher:
     def _get_auth(self):
         return (self.username, self.password)
 
+    def _find_export_files(self, topic: str) -> Optional[dict]:
+        """Find all export files for a topic."""
+        from config import OUTPUT_DIR
+        topic_slug = re.sub(r'[^a-zA-Z0-9]+', '_', topic.lower().strip())
+        topic_dir = Path(OUTPUT_DIR) / topic_slug
+        export_dir = topic_dir / "export"
+
+        if not export_dir.exists():
+            return None
+
+        files = {}
+        for mp3 in export_dir.glob("*.mp3"):
+            name = mp3.stem
+            if "[PLAIN]" in name:
+                files["plain_mp3"] = str(mp3)
+                base_name = name.replace("[PLAIN]", "")
+            else:
+                files["shadowing_mp3"] = str(mp3)
+                base_name = name
+
+        if not files:
+            return None
+
+        json_files = list(export_dir.glob(f"{base_name}.json"))
+        srt_files = list(export_dir.glob(f"{base_name}.srt"))
+
+        if json_files:
+            files["json"] = str(json_files[-1])
+        if srt_files:
+            files["srt"] = str(srt_files[-1])
+
+        files["base_name"] = base_name
+
+        pdf_files = list(export_dir.glob("*.pdf"))
+        if pdf_files:
+            files["pdf"] = str(pdf_files[-1])
+
+        return files
+
+    def _generate_description(self, entries: List[dict], pdf_url: str = None) -> str:
+        """Generate description with PDF link and transcript in markdown."""
+        parts = []
+
+        if pdf_url:
+            parts.append(f"[Transcript (with German Translation)]({pdf_url})")
+
+        parts.append("---")
+        parts.append("")
+        parts.append("## Questions & Answers")
+        parts.append("")
+
+        for entry in entries:
+            q = entry.get("question", "")
+            a = entry.get("answer", "")
+            if q and a:
+                parts.append(f"**Q:** {q}")
+                parts.append(f"**A:** {a}")
+                parts.append("")
+
+        return "\n".join(parts)
+
     def upload_episode(
         self,
         title: str,
@@ -27,6 +122,8 @@ class CastopodPublisher:
         audio_file: str,
         description: str = "",
         cover_file: Optional[str] = None,
+        chapters_file: Optional[str] = None,
+        transcript_file: Optional[str] = None,
     ) -> dict:
         """Upload and create a new episode."""
         url = f"{self.host}/episodes"
@@ -48,9 +145,18 @@ class CastopodPublisher:
             if cover_file:
                 with open(cover_file, "rb") as cover:
                     files["cover"] = (Path(cover_file).name, cover, "image/jpeg")
-                    response = requests.post(url, files=files, data=data, auth=self._get_auth())
-            else:
-                response = requests.post(url, files=files, data=data, auth=self._get_auth())
+
+            if chapters_file:
+                with open(chapters_file, "rb") as chapters:
+                    files["chapters_file"] = (Path(chapters_file).name, chapters, "application/json")
+                    data["chapters_choice"] = "upload-file"
+
+            if transcript_file:
+                with open(transcript_file, "rb") as transcript:
+                    files["transcript_file"] = (Path(transcript_file).name, transcript, "application/x-subrip")
+                    data["transcript_choice"] = "upload-file"
+
+            response = requests.post(url, files=files, data=data, auth=self._get_auth())
 
         if response.status_code == 201:
             return response.json()
@@ -72,6 +178,36 @@ class CastopodPublisher:
             return response.json()
         else:
             raise Exception(f"Failed to publish episode: {response.status_code} - {response.text}")
+
+    def upload_and_publish_episode(
+        self,
+        title: str,
+        slug: str,
+        audio_file: str,
+        description: str = "",
+        cover_file: Optional[str] = None,
+        chapters_file: Optional[str] = None,
+        transcript_file: Optional[str] = None,
+        publish: bool = False,
+    ) -> dict:
+        """Upload and optionally publish an episode."""
+        result = self.upload_episode(
+            title=title,
+            slug=slug,
+            audio_file=audio_file,
+            description=description,
+            cover_file=cover_file,
+            chapters_file=chapters_file,
+            transcript_file=transcript_file,
+        )
+
+        if publish:
+            episode_id = result.get("id")
+            if episode_id:
+                result = self.publish_episode(episode_id)
+                print(f"Episode published: {title}")
+
+        return result
 
 
 def publish_episode(
@@ -102,3 +238,61 @@ def publish_episode(
             print(f"Episode uploaded but could not get ID to publish: {title}")
 
     return result
+
+
+def publish_topic_episodes(topic: str, entries: List[dict], publish: bool = False) -> dict:
+    """Publish both shadowing and plain episodes for a topic."""
+    publisher = CastopodPublisher()
+    ftp = FTPClient()
+
+    export_files = publisher._find_export_files(topic)
+    if not export_files:
+        raise ValueError(f"No export files found for topic: {topic}")
+
+    pdf_url = None
+    if "pdf" in export_files:
+        pdf_path = export_files["pdf"]
+        pdf_filename = Path(pdf_path).name
+        pdf_url = ftp.upload_file(pdf_path, pdf_filename)
+        if pdf_url:
+            print(f"Transcript PDF URL: {pdf_url}")
+
+    description = publisher._generate_description(entries, pdf_url)
+
+    results = {}
+
+    if "shadowing_mp3" in export_files:
+        slug_shadow = f"{entries[0]['topic'].lower().replace(' ', '-')}-shadowing"
+        slug_shadow = re.sub(r'[^a-z0-9-]', '', slug_shadow)
+
+        result = publisher.upload_and_publish_episode(
+            title=f"{entries[0]['topic']} - Shadowing",
+            slug=slug_shadow,
+            audio_file=export_files["shadowing_mp3"],
+            description=description,
+            chapters_file=export_files.get("json"),
+            transcript_file=export_files.get("srt"),
+            publish=publish,
+        )
+        results["shadowing"] = result
+        print(f"Shadowing episode uploaded: {entries[0]['topic']} - Shadowing")
+
+    if "plain_mp3" in export_files:
+        slug_plain = f"{entries[0]['topic'].lower().replace(' ', '-')}-plain"
+        slug_plain = re.sub(r'[^a-z0-9-]', '', slug_plain)
+
+        plain_description = publisher._generate_description(entries, pdf_url)
+
+        result = publisher.upload_and_publish_episode(
+            title=f"{entries[0]['topic']} - Plain",
+            slug=slug_plain,
+            audio_file=export_files["plain_mp3"],
+            description=plain_description,
+            chapters_file=export_files.get("json"),
+            transcript_file=export_files.get("srt"),
+            publish=publish,
+        )
+        results["plain"] = result
+        print(f"Plain episode uploaded: {entries[0]['topic']} - Plain")
+
+    return results
