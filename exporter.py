@@ -104,7 +104,7 @@ class Exporter:
         pdf.ln()
         pdf.cell(0, 8, f"Tone: {tone}")
         pdf.ln()
-        pdf.multi_cell(0, 8, f"Vocabulary: {vocab_str}")
+        pdf.multi_cell(0, 8, f"Vocabulary: {vocab_str}", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(10)
 
         pdf.set_font("Segoe UI", "", 12)
@@ -117,10 +117,12 @@ class Exporter:
             required_height = (q_lines + a_lines) * 8 + 10
             if pdf.get_y() + required_height > pdf.h - 15:
                 pdf.add_page()
+            
+            pdf.set_x(15)
             pdf.set_font("Segoe UI", "B", 12)
-            pdf.multi_cell(0, 8, q_text)
+            pdf.multi_cell(0, 8, q_text, new_x="LMARGIN", new_y="NEXT")
             pdf.set_font("Segoe UI", "", 12)
-            pdf.multi_cell(0, 8, a_text)
+            pdf.multi_cell(0, 8, a_text, new_x="LMARGIN", new_y="NEXT")
             pdf.ln(10)
 
         pdf.output(str(pdf_path))
