@@ -141,21 +141,25 @@ class CastopodPublisher:
                 "created_by": int(self.user_id),
                 "updated_by": int(self.user_id),
                 "description": description,
+                "type": "full",
+                "block": "no",
+                "premium": "no",
+                "parental_advisory": "clean",
             }
 
-            if cover_file:
-                with open(cover_file, "rb") as cover:
-                    files["cover"] = (Path(cover_file).name, cover, "image/jpeg")
-
-            if chapters_file:
-                with open(chapters_file, "rb") as chapters:
-                    files["chapters_file"] = (Path(chapters_file).name, chapters, "application/json")
-                    data["chapters-choice"] = "upload-file"
-
-            if transcript_file:
-                with open(transcript_file, "rb") as transcript:
-                    files["transcript_file"] = (Path(transcript_file).name, transcript, "application/x-subrip")
-                    data["transcript-choice"] = "upload-file"
+            # if cover_file:
+            #     with open(cover_file, "rb") as cover:
+            #         files["cover"] = (Path(cover_file).name, cover, "image/jpeg")
+            #
+            # if chapters_file:
+            #     with open(chapters_file, "rb") as chapters:
+            #         files["chapters_file"] = (Path(chapters_file).name, chapters, "application/json")
+            #         data["chapters-choice"] = "upload-file"
+            #
+            # if transcript_file:
+            #     with open(transcript_file, "rb") as transcript:
+            #         files["transcript_file"] = (Path(transcript_file).name, transcript, "application/x-subrip")
+            #         data["transcript-choice"] = "upload-file"
 
             response = requests.post(url, files=files, data=data, auth=self._get_auth())
 
