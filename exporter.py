@@ -3,7 +3,7 @@ import re
 from pathlib import Path
 from typing import List, Dict, Optional
 
-from config import OUTPUT_DIR
+from config import OUTPUT_DIR, QUESTION_VOICE_ID, ELEVENLABS_VOICE_ID, DEFAULT_JSON, DEFAULT_LANGUAGE, AUDIO_FILE_PREFIX
 from llm_util import translate_to_german
 from db import ShadowingDB
 from pydub import AudioSegment
@@ -23,17 +23,21 @@ class Exporter:
         topic_dir = self.output_dir / topic_slug
         shadow_audio_dir = topic_dir / "shadowing"
         audio_dir = topic_dir / "audio"
+        res_dir = Path(__file__).parent / "res"
+        outro_path = res_dir / "outro.mp3"
 
         if not shadow_audio_dir.exists():
             return None
 
         shadow_files = []
         question_files = []
+        plain_files = []
         for entry in entries:
             entry_id = entry.get("id")
             if entry_id:
                 question_path = audio_dir / f"q_{entry_id:03d}.mp3"
                 shadow_path = shadow_audio_dir / f"shadow_{entry_id:03d}.mp3"
+                plain_path = audio_dir / f"a_init_{entry_id:03d}.mp3"
                 if question_path.exists():
                     question_files.append((entry_id, question_path))
                 else:
@@ -44,25 +48,52 @@ class Exporter:
                 else:
                     print(f"  Warning: Shadow audio for entry {entry_id} is missing. Skipping combined export for topic '{topic}'.")
                     return None
+                if plain_path.exists():
+                    plain_files.append((entry_id, plain_path))
+                else:
+                    print(f"  Warning: Initial answer audio for entry {entry_id} is missing. Skipping combined export for topic '{topic}'.")
+                    return None
 
         if not shadow_files:
             return None
 
         question_files.sort(key=lambda x: x[0])
         shadow_files.sort(key=lambda x: x[0])
+        plain_files.sort(key=lambda x: x[0])
 
-        combined = AudioSegment.empty()
+        base_name = f"{AUDIO_FILE_PREFIX} - {topic}"
+        export_dir = topic_dir / "export"
+        export_dir.mkdir(parents=True, exist_ok=True)
+
+        combined_shadowing = AudioSegment.empty()
         for (_, qf), (_, sf) in zip(question_files, shadow_files):
-            combined += AudioSegment.from_mp3(str(qf))
-            combined += AudioSegment.from_mp3(str(sf))
+            combined_shadowing += AudioSegment.from_mp3(str(qf))
+            combined_shadowing += AudioSegment.from_mp3(str(sf))
 
-        combined = combined.normalize(headroom=0.1)
+        combined_shadowing = combined_shadowing.normalize(headroom=0.1)
 
-        combined_path = topic_dir / "export" / f"{topic_slug}_full.mp3"
-        combined_path.parent.mkdir(parents=True, exist_ok=True)
-        combined.export(str(combined_path), format="mp3")
-        print(f"  Combined {len(shadow_files)} question+shadowing audio pairs into {combined_path.name}")
-        return str(combined_path)
+        outro = AudioSegment.from_mp3(str(outro_path)) if outro_path.exists() else AudioSegment.silent(duration=1000)
+        break_sil = AudioSegment.silent(duration=1000)
+        combined_shadowing += break_sil + outro
+
+        shadowing_path = export_dir / f"{base_name}.mp3"
+        combined_shadowing.export(str(shadowing_path), format="mp3")
+        print(f"  Combined {len(shadow_files)} question+shadowing audio pairs into {shadowing_path.name}")
+
+        combined_plain = AudioSegment.empty()
+        for (_, qf), (_, pf) in zip(question_files, plain_files):
+            combined_plain += AudioSegment.from_mp3(str(qf))
+            combined_plain += AudioSegment.from_mp3(str(pf))
+
+        combined_plain = combined_plain.normalize(headroom=0.1)
+
+        combined_plain += break_sil + outro
+
+        plain_path = export_dir / f"{base_name}[PLAIN].mp3"
+        combined_plain.export(str(plain_path), format="mp3")
+        print(f"  Combined {len(plain_files)} question+answer audio pairs into {plain_path.name}")
+
+        return str(shadowing_path)
 
     def _split_sentences(self, text: str) -> List[str]:
         """Split text into sentences."""
@@ -265,10 +296,14 @@ class Exporter:
         for topic, topic_entries in grouped.items():
             topic_slug = self._get_topic_slug(topic)
             topic_dir = self.output_dir / topic_slug
-            combined_audio_path = topic_dir / "export" / f"{topic_slug}_full.mp3"
+            base_name = f"{AUDIO_FILE_PREFIX} - {topic}"
+            combined_audio_path = topic_dir / "export" / f"{base_name}.mp3"
+            plain_audio_path = topic_dir / "export" / f"{base_name}[PLAIN].mp3"
             
             if combined_audio_path.exists():
                 audio_files[topic] = str(combined_audio_path)
+            if plain_audio_path.exists():
+                audio_files[f"{topic}_plain"] = str(plain_audio_path)
 
         return audio_files
 
