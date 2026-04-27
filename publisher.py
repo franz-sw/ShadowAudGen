@@ -116,14 +116,14 @@ class CastopodPublisher:
         return "\n".join(parts)
 
     def upload_episode(
-        self,
-        title: str,
-        slug: str,
-        audio_file: str,
-        description: str = "",
-        cover_file: Optional[str] = None,
-        chapters_file: Optional[str] = None,
-        transcript_file: Optional[str] = None,
+            self,
+            title: str,
+            slug: str,
+            audio_file: str,
+            description: str = "",
+            cover_file: Optional[str] = None,
+            chapters_file: Optional[str] = None,
+            transcript_file: Optional[str] = None,
     ) -> dict:
         """Upload and create a new episode."""
         slug = re.sub(r'[^a-z0-9]+', '-', slug.lower()).strip('-')
@@ -162,14 +162,9 @@ class CastopodPublisher:
                     files["transcript_file"] = (Path(transcript_file).name, transcript, "application/x-subrip")
                     data["transcript-choice"] = "upload-file"
 
-            print(f"Uploading episode to {url}")
-            print(f"Files: {list(files.keys())}")
-            print(f"Data: {data}")
-            print(f"Auth: {self._get_auth()[0]}")
-
             response = requests.post(url, files=files, data=data, auth=self._get_auth())
 
-        if response.status_code == 201:
+        if response.status_code == 200:
             return response.json()
         else:
             raise Exception(f"Failed to upload episode: {response.status_code} - {response.text}")
@@ -181,6 +176,9 @@ class CastopodPublisher:
         data = {
             "publication_method": publication_method,
             "client_timezone": "UTC",
+            "user_id": int(self.user_id),
+            "created_by": int(self.user_id),
+            "updated_by": int(self.user_id),
         }
 
         response = requests.post(url, data=data, auth=self._get_auth())
@@ -191,15 +189,15 @@ class CastopodPublisher:
             raise Exception(f"Failed to publish episode: {response.status_code} - {response.text}")
 
     def upload_and_publish_episode(
-        self,
-        title: str,
-        slug: str,
-        audio_file: str,
-        description: str = "",
-        cover_file: Optional[str] = None,
-        chapters_file: Optional[str] = None,
-        transcript_file: Optional[str] = None,
-        publish: bool = False,
+            self,
+            title: str,
+            slug: str,
+            audio_file: str,
+            description: str = "",
+            cover_file: Optional[str] = None,
+            chapters_file: Optional[str] = None,
+            transcript_file: Optional[str] = None,
+            publish: bool = False,
     ) -> dict:
         """Upload and optionally publish an episode."""
         result = self.upload_episode(
@@ -222,12 +220,12 @@ class CastopodPublisher:
 
 
 def publish_episode(
-    audio_file: str,
-    title: str,
-    slug: str,
-    description: str = "",
-    cover_file: Optional[str] = None,
-    publish: bool = False,
+        audio_file: str,
+        title: str,
+        slug: str,
+        description: str = "",
+        cover_file: Optional[str] = None,
+        publish: bool = False,
 ) -> dict:
     """Upload and optionally publish an episode to Castopod."""
     publisher = CastopodPublisher()

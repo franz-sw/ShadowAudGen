@@ -416,9 +416,13 @@ class Exporter:
             export_dir = topic_dir / "export"
             
             if export_dir.exists():
-                shadowing_files = list(export_dir.glob("* - [MK1]*.mp3"))
-                plain_files = list(export_dir.glob("* - [MK1][PLAIN]*.mp3"))
-                
+                all_mp3s = list(export_dir.glob("*.mp3"))
+                shadowing_files = [f for f in all_mp3s if " [MK1]" in f.name and "[PLAIN]" not in f.name]
+                plain_files = [f for f in all_mp3s if "[PLAIN]" in f.name]
+
+                shadowing_files.sort()
+                plain_files.sort()
+
                 if shadowing_files:
                     audio_files[topic] = str(shadowing_files[-1])
                 if plain_files:

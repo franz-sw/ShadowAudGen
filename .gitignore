@@ -11,7 +11,7 @@ shadowing_output/
 
 /input
 /res
-
+/castopod
 # Environment
 .env
 
