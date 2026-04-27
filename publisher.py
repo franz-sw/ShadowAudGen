@@ -126,6 +126,7 @@ class CastopodPublisher:
         transcript_file: Optional[str] = None,
     ) -> dict:
         """Upload and create a new episode."""
+        slug = re.sub(r'[^a-z0-9]+', '-', slug.lower()).strip('-')
         url = f"{self.host}/episodes"
 
         with open(audio_file, "rb") as audio:
