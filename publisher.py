@@ -109,16 +109,16 @@ class CastopodPublisher:
 
         parts.append("---")
         parts.append("")
-        parts.append("## Questions & Answers")
+        parts.append("## Transcript")
         parts.append("")
 
         for entry in entries:
             q = entry.get("question", "")
             a = entry.get("answer", "")
             if q and a:
-                parts.append(f"**Q:** {q}")
-                parts.append(f"**A:** {a}")
-                parts.append("")
+                parts.append(f"**{q}**\n")
+                parts.append(f"{a}")
+                parts.append("\n")
 
         return "\n".join(parts)
 
