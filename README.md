@@ -41,18 +41,6 @@ Uses pyttsx3 (local, offline) for Question TTS and ElevenLabs TTS + WhisperX for
 
 4. Place your input JSON file(s) in the `input/` folder.
 
-### Installing Hungarian TTS Voice (Windows)
-The question audio uses a local, offline TTS (`pyttsx3`). If you are using Hungarian (`DEFAULT_LANGUAGE = "hu"`) and do not have the voice installed, you will hear an English voice mispronouncing the Hungarian words.
-
-To install the Hungarian voice on Windows:
-1. Open **Windows Settings** (`Win + I`).
-2. Go to **Time & language** -> **Language & region** (or **Speech** in some Windows versions).
-3. Under **Preferred languages**, click **Add a language**.
-4. Search for **Hungarian** (Magyar), select it, and click **Next**.
-5. **Important**: Ensure the **Text-to-speech** (Szövegfelolvasó) optional feature is checked!
-6. Click **Install**.
-7. Once installed, the script will automatically detect and use the Hungarian voice (typically "Microsoft Szabolcs" or a similar female voice if available).
-
 ## Usage
 
 ```bash
