@@ -160,7 +160,16 @@ class Exporter:
             combined_audio_path = self._combine_shadowing_audios(topic, topic_entries)
 
             metadata = topic_entries[0]
+            vocabulary = metadata.get("vocabulary", [])
+            if isinstance(vocabulary, str):
+                try:
+                    vocabulary = json.loads(vocabulary)
+                except:
+                    vocabulary = []
             unused = metadata.get("unused_input_words", [])
+
+            tone = metadata.get("tone", "")
+            fmt = metadata.get("format", "")
             vocabulary = [w for w in vocabulary if w not in unused] if isinstance(vocabulary, list) else vocabulary
             with open(out_path, "w", encoding="utf-8") as f:
                 f.write(f"# {topic}\n\n")
