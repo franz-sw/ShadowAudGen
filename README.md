@@ -57,19 +57,34 @@ python main.py --export-only
 - `--json, -j`: Path to JSON file (default: `input/shadowing_source_input.json`)
 - `--overwrite, -o`: Regenerate existing audios
 - `--export-only`: Only export markdown from current DB
+- `--export-all`: Export all topics regardless of JSON input
+- `--export-name`: Custom export filename (default: `shadowing_transcripts.md`)
+- `--publish`: Upload episode to Castopod after generation
 
 ## Project Structure
 ```
-output/
-  audio/
-    fizikai_cselekvesek/          # topic-based folders
-      q_001.mp3
-      a_init_001.mp3
-      shadowing/
-        shadow_001.mp3
-  exports/
-    fizikai_cselekv_sek_mozg_sok_s_interakci_k.md
-    fizikai_cselekv_sek_mozg_sok_s_interakci_k.pdf
-    shadowing_transcripts.md
-shadowing.db                      # SQLite with entries + topic_metadata (vocabulary, format, tone)
+ShadowAudGen/
+├── main.py                 # CLI entry point
+├── generator.py            # Audio generation logic
+├── exporter.py             # Markdown/PDF export
+├── publisher.py           # Castopod publishing
+├── config.py               # Configuration & constants
+├── db.py                   # SQLite database operations
+├── utils.py                # Utility functions
+├── shadower_util.py        # Shadowing-specific utilities
+├── pyproject.toml          # Project dependencies
+├── input/                  # Input JSON files
+├── output/                  # Generated files
+│   audio/
+│     <topic>/
+│       q_001.mp3
+│       a_init_001.mp3
+│       shadowing/
+│         shadow_001.mp3
+│   exports/
+│     <topic>.md
+│     <topic>.pdf
+│     shadowing_transcripts.md
+├── res/                    # Resources (cover images)
+└── docs/                   # Documentation
 ```
