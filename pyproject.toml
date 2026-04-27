@@ -9,4 +9,6 @@ dependencies = [
     "whisperx>=3.8.5",
     "fpdf2>=2.7.9",
     "edge-tts>=7.2.8",
+    "paramiko>=3.0.0",
+    "pycryptodome>=3.20.0",
 ]
