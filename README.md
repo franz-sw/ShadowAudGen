@@ -51,6 +51,9 @@ deactivate
 python main.py --json shadowing_source_input.json
 python main.py --json another_topic.json --overwrite
 python main.py --export-only
+
+// e.g. 
+py main.py --json ".\input\Egy éjszakai betörés és küzdelem elmesélése.json"
 ```
 
 ### Arguments
