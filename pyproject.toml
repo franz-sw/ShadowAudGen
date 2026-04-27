@@ -1,13 +1,12 @@
 [project]
 name = "shadowaudgen"
 version = "0.1.0"
-requires-python = ">=3.12"
+requires-python = "==3.12.*"
 dependencies = [
     "pydub>=0.25.1",
     "python-dotenv>=1.2.2",
     "requests>=2.33.1",
     "whisperx>=3.8.5",
-    "audioop-lts>=0.2.2; python_version >= '3.13'",
     "fpdf2>=2.7.9",
     "edge-tts>=7.2.8",
 ]

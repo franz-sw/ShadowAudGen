@@ -2,9 +2,7 @@
 
 Tool to generate shadowing practice audios for language learning (Hungarian → English).
 
-> **Python version**: Works with **Python 3.12** or **3.13** (3.13 requires a compatibility shim for pydub). Uses uv for venv management.
-
-> **Python version**: Use **Python 3.12** (recommended — 3.13 supported via pydub shim). See Installation below.
+> **Python version**: Use **Python 3.12**. Uses uv for venv management.
 
 Uses pyttsx3 (local, offline) for Question TTS and ElevenLabs TTS + WhisperX forced alignment for precise repetition blocks.
 
@@ -19,7 +17,7 @@ Uses pyttsx3 (local, offline) for Question TTS and ElevenLabs TTS + WhisperX for
 ## Installation
 
 **Requirements:**
-- Python 3.12 or 3.13 (3.13 needs pydub compatibility shim, auto-created by `uv sync`)
+- Python 3.12
 - uv (Python package manager)
 
 1. **Install FFmpeg** (CRITICAL):
@@ -38,13 +36,6 @@ Uses pyttsx3 (local, offline) for Question TTS and ElevenLabs TTS + WhisperX for
    uv sync
    ```
    This creates/uses the `.venv` with the correct Python version.
-
-   **For Python 3.13**: If you get `ModuleNotFoundError: No module named 'audioop'`, create a shim:
-   ```powershell
-   # Run from project root
-   Copy-Item ".venv\Lib\site-packages\pydub\pyaudioop.py" ".venv\Lib\site-packages\pyaudioop.py"
-   ```
-   The `uv sync` should auto-create this shim.
 
 3. Copy `.env.example` to `.env` and fill in your API keys (ElevenLabs + XAI).
 
