@@ -74,17 +74,17 @@ ShadowAudGen/
 ├── shadower_util.py        # Shadowing-specific utilities
 ├── pyproject.toml          # Project dependencies
 ├── input/                  # Input JSON files
-├── output/                  # Generated files
-│   audio/
+├── output/              
 │     <topic>/
-│       q_001.mp3
-│       a_init_001.mp3
-│       shadowing/
-│         shadow_001.mp3
-│   exports/
-│     <topic>.md
-│     <topic>.pdf
-│     shadowing_transcripts.md
-├── res/                    # Resources (cover images)
+│         audio/
+│            q_001.mp3
+│            a_init_001.mp3
+│            shadowing/
+│              shadow_001.mp3
+│         exports/
+│           <topic>.md
+│           <topic>.pdf
+│           shadowing_transcripts.md
+├── res/                    # Resources
 └── docs/                   # Documentation
 ```
