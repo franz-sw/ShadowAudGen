@@ -99,6 +99,9 @@ class Exporter:
             except:
                 vocabulary = []
 
+        unused = metadata.get("unused_input_words", [])
+        vocabulary = [w for w in vocabulary if w not in unused] if isinstance(vocabulary, list) else vocabulary
+
         pdf.set_font("Segoe UI", "", 12)
         pdf.cell(0, 8, f"Format: {fmt}")
         pdf.ln()
@@ -157,10 +160,8 @@ class Exporter:
             combined_audio_path = self._combine_shadowing_audios(topic, topic_entries)
 
             metadata = topic_entries[0]
-            vocabulary = metadata.get("vocabulary", [])
-            tone = metadata.get("tone", "")
-            fmt = metadata.get("format", "")
-
+            unused = metadata.get("unused_input_words", [])
+            vocabulary = [w for w in vocabulary if w not in unused] if isinstance(vocabulary, list) else vocabulary
             with open(out_path, "w", encoding="utf-8") as f:
                 f.write(f"# {topic}\n\n")
                 f.write(f"**Format:** {fmt}  \n")
