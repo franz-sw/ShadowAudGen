@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import List, Dict, Optional
 
 from config import OUTPUT_DIR
+from llm_util import translate_to_german
 from db import ShadowingDB
 from pydub import AudioSegment
 from fpdf import FPDF
@@ -63,6 +64,13 @@ class Exporter:
         print(f"  Combined {len(shadow_files)} question+shadowing audio pairs into {combined_path.name}")
         return str(combined_path)
 
+    def _split_sentences(self, text: str) -> List[str]:
+        """Split text into sentences."""
+        if not text:
+            return []
+        sentences = re.split(r'(?<=[.!?])\s+', text.strip())
+        return [s.strip() for s in sentences if s.strip()]
+
     def _export_topic_to_pdf(self, topic: str, topic_entries: List[Dict], combined_audio_path: Optional[str] = None) -> str:
         topic_slug = self._get_topic_slug(topic)
         topic_dir = self.output_dir / topic_slug
@@ -110,11 +118,11 @@ class Exporter:
         pdf.multi_cell(0, 8, f"Vocabulary: {vocabulary}", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(10)
 
-        pdf.set_font("Segoe UI", "", 12)
         for entry in topic_entries:
-            q_text = f"{entry.get('question', '')}"
-            a_text = f"{entry.get('answer', '')}"
+            q_text = entry.get('question', '')
+            a_text = entry.get('answer', '')
             cell_width = pdf.w - 30
+            
             q_lines = (pdf.get_string_width(q_text) // cell_width) + 1
             a_lines = (pdf.get_string_width(a_text) // cell_width) + 1
             required_height = (q_lines + a_lines) * 8 + 10
@@ -126,6 +134,50 @@ class Exporter:
             pdf.multi_cell(0, 8, q_text, new_x="LMARGIN", new_y="NEXT")
             pdf.set_font("Segoe UI", "", 12)
             pdf.multi_cell(0, 8, a_text, new_x="LMARGIN", new_y="NEXT")
+            pdf.ln(5)
+
+        pdf.add_page()
+        pdf.set_font("Segoe UI", "B", 16)
+        pdf.cell(0, 10, f"{topic} - German Translation", ln=True, align="C")
+        pdf.ln(5)
+
+        for entry in topic_entries:
+            q_text = entry.get('question', '')
+            a_text = entry.get('answer', '')
+
+            q_sentences = self._split_sentences(q_text)
+            a_sentences = self._split_sentences(a_text)
+
+            all_sentences = q_sentences + a_sentences
+            if all_sentences:
+                german_translations = translate_to_german(all_sentences)
+            else:
+                german_translations = []
+
+            cell_width = pdf.w - 30
+            
+            if pdf.get_y() > pdf.h - 40:
+                pdf.add_page()
+
+            pdf.set_x(15)
+            pdf.set_font("Segoe UI", "B", 12)
+            pdf.multi_cell(0, 8, q_text, new_x="LMARGIN", new_y="NEXT")
+            
+            pdf.set_font("Segoe UI", "I", 11)
+            for i, sent in enumerate(q_sentences):
+                if i < len(german_translations):
+                    pdf.multi_cell(0, 7, german_translations[i], new_x="LMARGIN", new_y="NEXT")
+            pdf.ln(3)
+
+            pdf.set_font("Segoe UI", "", 12)
+            pdf.multi_cell(0, 8, a_text, new_x="LMARGIN", new_y="NEXT")
+
+            pdf.set_font("Segoe UI", "I", 11)
+            q_count = len(q_sentences)
+            for i, sent in enumerate(a_sentences):
+                idx = q_count + i
+                if idx < len(german_translations):
+                    pdf.multi_cell(0, 7, german_translations[idx], new_x="LMARGIN", new_y="NEXT")
             pdf.ln(10)
 
         pdf.output(str(pdf_path))
