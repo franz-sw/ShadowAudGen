@@ -166,8 +166,6 @@ class CastopodPublisher:
         if response.status_code == 201:
             return response.json()
         else:
-            print(f"Response status: {response.status_code}")
-            print(f"Response text: {response.text}")
             raise Exception(f"Failed to upload episode: {response.status_code} - {response.text}")
 
     def publish_episode(self, episode_id: int, publication_method: str = "now") -> dict:
