@@ -62,6 +62,7 @@ py main.py --json ".\input\Egy éjszakai betörés és küzdelem elmesélése.js
 - `--export-only`: Only export markdown from current DB
 - `--export-all`: Export all topics regardless of JSON input
 - `--export-name`: Custom export filename (default: `shadowing_transcripts.md`)
+- `--include-translations`: Include German translations in PDF export (requires XAI_API_KEY)
 - `--publish`: Upload episode to Castopod after generation
 
 ## Project Structure
