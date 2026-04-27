@@ -107,7 +107,7 @@ class Exporter:
         pdf.ln()
         pdf.cell(0, 8, f"Tone: {tone}")
         pdf.ln()
-        pdf.multi_cell(0, 8, f"Vocabulary: {vocab_str}", new_x="LMARGIN", new_y="NEXT")
+        pdf.multi_cell(0, 8, f"Vocabulary: {vocabulary}", new_x="LMARGIN", new_y="NEXT")
         pdf.ln(10)
 
         pdf.set_font("Segoe UI", "", 12)

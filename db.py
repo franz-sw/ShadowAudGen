@@ -25,6 +25,7 @@ class ShadowingDB:
             "source_file": source_file,
             "topic": topic,
             "vocabulary": data.get("vocabulary", []),
+            "unused_input_words": data.get("unused_input_words", []),
             "format": data.get("format"),
             "tone": data.get("tone")
         }
@@ -39,6 +40,7 @@ class ShadowingDB:
                 "answer": item["answer"],
                 "answer_metadata": item.get("answer_metadata", ""),
                 "vocabulary": data.get("vocabulary", []),
+                "unused_input_words": data.get("unused_input_words", []),
                 "format": data.get("format"),
                 "tone": data.get("tone")
             })
