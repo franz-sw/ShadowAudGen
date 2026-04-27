@@ -52,7 +52,7 @@ class AudioGenerator:
                 text=entry["answer"],
                 output_path=str(a_path),
                 voice_id=ELEVENLABS_VOICE_ID,
-                speed=0.96,
+                speed=0.95,
                 overwrite=overwrite
             ):
                 success = False
