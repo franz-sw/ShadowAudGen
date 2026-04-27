@@ -18,6 +18,7 @@ def main():
     parser.add_argument("--export-all", action="store_true")
     parser.add_argument("--export-only", action="store_true")
     parser.add_argument("--export-name", default="shadowing_transcripts.md")
+    parser.add_argument("--include-translations", action="store_true", help="Include German translations in PDF export")
     parser.add_argument("--publish", action="store_true", help="Upload and publish episode to Castopod")
 
     args = parser.parse_args()
@@ -25,7 +26,7 @@ def main():
     try:
         if args.export_only:
             exporter = Exporter()
-            md_paths = exporter.export_to_markdown(args.export_name)
+            md_paths = exporter.export_to_markdown(args.export_name, include_translations=args.include_translations)
             for md_path in md_paths:
                 print(f"Export completed: {md_path}")
             return 0
@@ -35,7 +36,7 @@ def main():
         generator.run_full_generation(json_path=args.json, overwrite=args.overwrite, export_all=args.export_all)
 
         exporter = Exporter()
-        md_paths = exporter.export_to_markdown(default_json=args.json, output_name=args.export_name)
+        md_paths = exporter.export_to_markdown(default_json=args.json, output_name=args.export_name, include_translations=args.include_translations)
 
         if args.publish:
             audio_files = exporter.get_exported_audio_files(default_json=args.json)

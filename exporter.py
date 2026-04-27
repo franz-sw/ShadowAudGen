@@ -71,7 +71,7 @@ class Exporter:
         sentences = re.split(r'(?<=[.!?])\s+', text.strip())
         return [s.strip() for s in sentences if s.strip()]
 
-    def _export_topic_to_pdf(self, topic: str, topic_entries: List[Dict], combined_audio_path: Optional[str] = None) -> str:
+    def _export_topic_to_pdf(self, topic: str, topic_entries: List[Dict], combined_audio_path: Optional[str] = None, include_translations: bool = False) -> str:
         topic_slug = self._get_topic_slug(topic)
         topic_dir = self.output_dir / topic_slug
         export_subdir = topic_dir / "export"
@@ -137,54 +137,55 @@ class Exporter:
             pdf.ln(5)
 
         pdf.add_page()
-        pdf.set_font("Segoe UI", "B", 16)
-        pdf.cell(0, 10, f"{topic} - German Translation", ln=True, align="C")
-        pdf.ln(5)
+        if include_translations:
+            pdf.set_font("Segoe UI", "B", 16)
+            pdf.cell(0, 10, f"{topic} - German Translation", ln=True, align="C")
+            pdf.ln(5)
 
-        for entry in topic_entries:
-            q_text = entry.get('question', '')
-            a_text = entry.get('answer', '')
+            for entry in topic_entries:
+                q_text = entry.get('question', '')
+                a_text = entry.get('answer', '')
 
-            q_sentences = self._split_sentences(q_text)
-            a_sentences = self._split_sentences(a_text)
+                q_sentences = self._split_sentences(q_text)
+                a_sentences = self._split_sentences(a_text)
 
-            all_sentences = q_sentences + a_sentences
-            if all_sentences:
-                german_translations = translate_to_german(all_sentences)
-            else:
-                german_translations = []
+                all_sentences = q_sentences + a_sentences
+                if all_sentences:
+                    german_translations = translate_to_german(all_sentences)
+                else:
+                    german_translations = []
 
-            cell_width = pdf.w - 30
-            
-            if pdf.get_y() > pdf.h - 40:
-                pdf.add_page()
+                cell_width = pdf.w - 30
+                
+                if pdf.get_y() > pdf.h - 40:
+                    pdf.add_page()
 
-            pdf.set_x(15)
-            pdf.set_font("Segoe UI", "B", 12)
-            pdf.multi_cell(0, 8, q_text, new_x="LMARGIN", new_y="NEXT")
-            
-            pdf.set_font("Segoe UI", "I", 11)
-            for i, sent in enumerate(q_sentences):
-                if i < len(german_translations):
-                    pdf.multi_cell(0, 7, german_translations[i], new_x="LMARGIN", new_y="NEXT")
-            pdf.ln(3)
+                pdf.set_x(15)
+                pdf.set_font("Segoe UI", "B", 12)
+                pdf.multi_cell(0, 8, q_text, new_x="LMARGIN", new_y="NEXT")
+                
+                pdf.set_font("Segoe UI", "I", 11)
+                for i, sent in enumerate(q_sentences):
+                    if i < len(german_translations):
+                        pdf.multi_cell(0, 7, german_translations[i], new_x="LMARGIN", new_y="NEXT")
+                pdf.ln(3)
 
-            pdf.set_font("Segoe UI", "", 12)
-            pdf.multi_cell(0, 8, a_text, new_x="LMARGIN", new_y="NEXT")
+                pdf.set_font("Segoe UI", "", 12)
+                pdf.multi_cell(0, 8, a_text, new_x="LMARGIN", new_y="NEXT")
 
-            pdf.set_font("Segoe UI", "I", 11)
-            q_count = len(q_sentences)
-            for i, sent in enumerate(a_sentences):
-                idx = q_count + i
-                if idx < len(german_translations):
-                    pdf.multi_cell(0, 7, german_translations[idx], new_x="LMARGIN", new_y="NEXT")
-            pdf.ln(10)
+                pdf.set_font("Segoe UI", "I", 11)
+                q_count = len(q_sentences)
+                for i, sent in enumerate(a_sentences):
+                    idx = q_count + i
+                    if idx < len(german_translations):
+                        pdf.multi_cell(0, 7, german_translations[idx], new_x="LMARGIN", new_y="NEXT")
+                pdf.ln(10)
 
         pdf.output(str(pdf_path))
         print(f"Exported PDF to {pdf_path}")
         return str(pdf_path)
 
-    def export_to_markdown(self, default_json: str = None, output_name: str = None) -> List[str]:
+    def export_to_markdown(self, default_json: str = None, output_name: str = None, include_translations: bool = False) -> List[str]:
         if default_json:
             self.db.load_from_json(default_json)
         
@@ -240,7 +241,7 @@ class Exporter:
             print(f"Exported {len(topic_entries)} entries to {out_path}")
             output_files.append(str(out_path))
 
-            pdf_path = self._export_topic_to_pdf(topic, topic_entries, combined_audio_path)
+            pdf_path = self._export_topic_to_pdf(topic, topic_entries, combined_audio_path, include_translations)
             output_files.append(pdf_path)
 
         return output_files
