@@ -73,11 +73,3 @@ output/
     shadowing_transcripts.md
 shadowing.db                      # SQLite with entries + topic_metadata (vocabulary, format, tone)
 ```
-
-## AGENTS.md
-This file is updated after major changes. Always update `README.md` when adding significant features or changing usage.
-
-## Notes
-- Do not edit `.env`
-- Do not run Python scripts directly via agent (use manual execution)
-- After changes, commit with meaningful message
