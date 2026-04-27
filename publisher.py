@@ -136,9 +136,10 @@ class CastopodPublisher:
             data = {
                 "title": title,
                 "slug": slug,
-                "podcast_id": self.podcast_id,
-                "user_id": self.user_id,
-                "updated_by": self.user_id,
+                "podcast_id": int(self.podcast_id),
+                "user_id": int(self.user_id),
+                "created_by": int(self.user_id),
+                "updated_by": int(self.user_id),
                 "description": description,
             }
 
@@ -228,6 +229,8 @@ def publish_episode(
         description=description,
         cover_file=cover_file,
     )
+
+    print(f"Uploaded episode: {result}")
 
     if publish:
         episode_id = result.get("id")
