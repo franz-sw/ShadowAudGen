@@ -27,10 +27,10 @@ def translate_to_german(sentences: List[str]) -> List[str]:
                 "messages": [
                     {"role": "user", "content": prompt}
                 ],
-                "max_tokens": 2000,
+                "max_tokens": 5000,
                 "temperature": 0.3
             },
-            timeout=60
+            timeout=120
         )
         response.raise_for_status()
 
