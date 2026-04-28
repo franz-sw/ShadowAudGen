@@ -40,23 +40,11 @@ LANG_TO_EDGE_VOICE = {
     'zh': 'zh-CN-XiaoxiaoNeural',
 }
 
-async def _generate_edge_tts(text: str, output_path: str, voice: str) -> bool:
-    try:
-        path = Path(output_path)
-        path.parent.mkdir(parents=True, exist_ok=True)
-        communicate = edge_tts.Communicate(text, voice, pitch = "-10Hz")
-        await communicate.save(output_path)
-        return True
-    except Exception as e:
-        print(f"  edge-tts failed: {e}")
-        return False
-
-
 def call_tts_api(
         text: str,
         output_path: str,
+        speed: float,
         voice_id: str | None = None,
-        speed: float = 1.0,
         overwrite: bool = False,
         previous_text: str = "",
         stability: float = 0.5,
@@ -109,6 +97,18 @@ def call_tts_api(
 
     except Exception as e:
         print(f"  ❌ TTS API failed: voice={voice_id}, text='{text[:10]}...': {str(e)}")
+        return False
+
+
+async def _generate_edge_tts(text: str, output_path: str, voice: str) -> bool:
+    try:
+        path = Path(output_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        communicate = edge_tts.Communicate(text, voice, pitch = "-10Hz")
+        await communicate.save(output_path)
+        return True
+    except Exception as e:
+        print(f"  edge-tts failed: {e}")
         return False
 
 
