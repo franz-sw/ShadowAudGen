@@ -78,23 +78,26 @@ class CastopodPublisher:
             if "[PLAIN]" in name:
                 files["plain_mp3"] = str(mp3)
                 files["plain_base_name"] = name
-                base_name = name.replace("[PLAIN]", "")
+                # Direct path construction for plain json/srt
+                plain_json = export_dir / f"{name}.json"
+                plain_srt = export_dir / f"{name}.srt"
+                if plain_json.exists():
+                    files["plain_json"] = str(plain_json)
+                if plain_srt.exists():
+                    files["plain_srt"] = str(plain_srt)
             else:
                 files["shadowing_mp3"] = str(mp3)
-                base_name = name
+                files["base_name"] = name
+                # Direct path construction for shadowing json/srt
+                shadow_json = export_dir / f"{name}.json"
+                shadow_srt = export_dir / f"{name}.srt"
+                if shadow_json.exists():
+                    files["json"] = str(shadow_json)
+                if shadow_srt.exists():
+                    files["srt"] = str(shadow_srt)
 
         if not files:
             return None
-
-        json_files = list(export_dir.glob(f"{base_name}.json"))
-        srt_files = list(export_dir.glob(f"{base_name}.srt"))
-
-        if json_files:
-            files["json"] = str(json_files[-1])
-        if srt_files:
-            files["srt"] = str(srt_files[-1])
-
-        files["base_name"] = base_name
 
         pdf_files = list(export_dir.glob("*.pdf"))
         if pdf_files:
@@ -311,8 +314,8 @@ def publish_topic_episodes(topic: str, entries: List[dict], publish: bool = Fals
             slug=slug_plain,
             audio_file=export_files["plain_mp3"],
             description=plain_description,
-            chapters_file=export_files.get("json"),
-            transcript_file=export_files.get("srt"),
+            chapters_file=export_files.get("plain_json"),
+            transcript_file=export_files.get("plain_srt"),
             publish=publish,
         )
         results["plain"] = result
