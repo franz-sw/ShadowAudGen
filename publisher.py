@@ -136,6 +136,7 @@ class CastopodPublisher:
                     parts.append("")
                 if fmt:
                     parts.append(f"**Format:** {fmt}")
+                    parts.append("")
                 if tone:
                     parts.append(f"**Tone:** {tone}")
                 parts.append("")
