@@ -194,13 +194,12 @@ class CastopodPublisher:
             "created_by": int(self.user_id),
             "updated_by": int(self.user_id),
         }
-# disabled during development
-        # response = requests.post(url, data=data, auth=self._get_auth())
-        #
-        # if response.status_code == 200:
-        #     return response.json()
-        # else:
-        #     raise Exception(f"Failed to publish episode: {response.status_code} - {response.text}")
+        response = requests.post(url, data=data, auth=self._get_auth())
+
+        if response.status_code == 200:
+            return response.json()
+        else:
+            raise Exception(f"Failed to publish episode: {response.status_code} - {response.text}")
 
     def upload_and_publish_episode(
             self,
@@ -280,7 +279,7 @@ def publish_topic_episodes(topic: str, entries: List[dict], publish: bool = Fals
     if "pdf" in export_files:
         pdf_path = export_files["pdf"]
         pdf_filename = Path(pdf_path).name
-        pdf_url = ftp.upload_file(pdf_path, pdf_filename)
+        pdf_url = ftp.upload_file(pdf_path, pdf_filename.replace(' ', ''))
         if pdf_url:
             print(f"Transcript PDF URL: {pdf_url}")
 
