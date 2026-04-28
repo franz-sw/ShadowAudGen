@@ -1,0 +1,27 @@
+{
+  "topic": "Example: Daily Routine",
+  "vocabulary": [
+    "kel",
+    "mos",
+    "eszik",
+    "iszik",
+    "olvas",
+    "ír",
+    "alszik"
+  ],
+  "unused_input_words": [],
+  "format": "Monologue",
+  "tone": "Tégezni",
+  "shadowing_source": [
+    {
+      "question": "Meséld el, kérlek, hogyan telik egy tipikus napod!",
+      "answer": "Reggel hatkor kelek. Mosdatok és reggelizek. Ebéd után olvasok egy kicsit. Este kilenckor alszom.",
+      "answer_metadata": "[block break=1.0 multiplier=1.4]\nReggel hatkor kelek.\n[repeat]\nReggel hatkor\nkelek\nReggel hatkor kelek\n[/repeat]\n[block break=1.0 multiplier=1.4]\nMosdatok és reggelizek.\n[repeat]\nMosdatok és\nreggelizek\nMosdatok és reggelizek\n[/repeat]\n[block break=1.0 multiplier=1.4]\nEbéd után olvasok egy kicsit.\n[repeat]\nEbéd után\nolvasok egy kicsit\nEbéd után olvasok egy kicsit\n[/repeat]\n[block break=1.0 multiplier=1.4]\nEste kilenckor alszom.\n[repeat]\nEste kilenckor\nalszom\nEste kilenckor alszom\n[/repeat]"
+    },
+    {
+      "question": "Mi a kedvenc ételed?",
+      "answer": "A legjobban a pörköltet szeretem. Nagyon finom és tápláló. Mindig ezt készítek vasárnap.",
+      "answer_metadata": "[block break=1.0 multiplier=1.4]\nA legjobban a pörköltet szeretem.\n[repeat]\nA legjobban\na pörköltet szeretem\nA legjobban a pörköltet szeretem\n[/repeat]\n[block break=1.0 multiplier=1.4]\nNagyon finom és tápláló.\n[repeat]\nNagyon finom\nés tápláló\nNagyon finom és tápláló\n[/repeat]\n[block break=1.0 multiplier=1.4]\nMindig ezt készítek vasárnap.\n[repeat]\nMindig ezt\nkészítek vasárnap\nMindig ezt készítek vasárnap\n[/repeat]"
+    }
+  ]
+}
