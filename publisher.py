@@ -4,6 +4,7 @@ import paramiko
 import requests
 from pathlib import Path
 from typing import Optional, Tuple, List
+from contextlib import ExitStack
 
 from config import CASTOPOD_HOST, CASTOPOD_PODCAST_ID, CASTOPOD_USER_ID, CASTOPOD_AUTH_USERNAME, CASTOPOD_AUTH_PASSWORD, SHADOWING_SOURCES_BASE_URL
 from utils import get_slug
@@ -141,7 +142,8 @@ class CastopodPublisher:
         slug = get_slug(slug)
         url = f"{self.host}/episodes"
 
-        with open(audio_file, "rb") as audio:
+        with ExitStack() as stack:
+            audio = stack.enter_context(open(audio_file, "rb"))
             files = {
                 "audio_file": (Path(audio_file).name, audio, "audio/mpeg"),
             }
@@ -161,18 +163,18 @@ class CastopodPublisher:
             }
 
             if cover_file:
-                with open(cover_file, "rb") as cover:
-                    files["cover"] = (Path(cover_file).name, cover, "image/jpeg")
+                cover = stack.enter_context(open(cover_file, "rb"))
+                files["cover"] = (Path(cover_file).name, cover, "image/jpeg")
 
             if chapters_file:
-                with open(chapters_file, "rb") as chapters:
-                    files["chapters_file"] = (Path(chapters_file).name, chapters, "application/json")
-                    data["chapters-choice"] = "upload-file"
+                chapters = stack.enter_context(open(chapters_file, "rb"))
+                files["chapters_file"] = (Path(chapters_file).name, chapters, "application/json")
+                data["chapters-choice"] = "upload-file"
 
             if transcript_file:
-                with open(transcript_file, "rb") as transcript:
-                    files["transcript_file"] = (Path(transcript_file).name, transcript, "application/x-subrip")
-                    data["transcript-choice"] = "upload-file"
+                transcript = stack.enter_context(open(transcript_file, "rb"))
+                files["transcript_file"] = (Path(transcript_file).name, transcript, "application/x-subrip")
+                data["transcript-choice"] = "upload-file"
 
             response = requests.post(url, files=files, data=data, auth=self._get_auth())
 
