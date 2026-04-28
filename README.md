@@ -7,7 +7,7 @@ Tool to generate **shadowing practice audios for language learning** (Hungarian 
 This project creates shadowing audios for language learning. The key workflow:
 
 1. **Input**: JSON files containing vocabulary lists, questions/answers, and special repetition markup tags
-2. **Question TTS**: Uses pyttsx3 (local, offline) to generate question audio
+2. **Question TTS**: Uses edge-tts (local, offline) to generate question audio
 3. **Answer TTS**: Uses ElevenLabs API to generate the initial answer audio
 4. **Shadowing Generation**: Uses **WhisperX forced alignment** to precisely locate each word in the audio, then:
    - Splits the audio into individual word segments
@@ -75,6 +75,12 @@ Edit `.env` and add your **ElevenLabs API Key** (required):
 ### 4. Place Input JSON
 
 Copy your input JSON to the `input/` folder (see `examples/sample_input.json` for format).
+
+#### Generating Input JSON
+
+Use the example prompts in `examples/` to generate input JSONs with LLM assistance:
+- `examples/json_source_generation_prompt.md` - Main prompt for generating shadowing content
+- `examples/topic_finder_prompt(optional).md` - Optional prompt for topic ideas
 
 ## Usage
 
