@@ -23,9 +23,7 @@ class Exporter:
             current = int(counter_file.read_text().strip())
         else:
             current = 0
-        next_num = current + 1
-        counter_file.write_text(str(next_num))
-        return next_num
+        return current + 1
 
     def _format_srt_time(self, ms: int) -> str:
         seconds, milliseconds = divmod(int(ms), 1000)

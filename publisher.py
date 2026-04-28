@@ -8,6 +8,7 @@ from contextlib import ExitStack
 
 from config import CASTOPOD_HOST, CASTOPOD_PODCAST_ID, CASTOPOD_USER_ID, CASTOPOD_AUTH_USERNAME, CASTOPOD_AUTH_PASSWORD, SHADOWING_SOURCES_BASE_URL
 from utils import get_slug
+from pathlib import Path
 
 
 class FTPClient:
@@ -56,9 +57,21 @@ class CastopodPublisher:
         self.user_id = CASTOPOD_USER_ID
         self.username = CASTOPOD_AUTH_USERNAME
         self.password = CASTOPOD_AUTH_PASSWORD
+        self.episode_counter_file = Path(__file__).parent / "res" / "episode_counter.txt"
 
         if not all([self.host, self.podcast_id, self.user_id, self.username, self.password]):
             raise ValueError("Missing required Castopod configuration. Check .env file.")
+
+    def _get_next_episode_number(self) -> int:
+        """Get and increment the episode counter. Only called on publish."""
+        counter_file = self.episode_counter_file
+        if counter_file.exists():
+            current = int(counter_file.read_text().strip())
+        else:
+            current = 0
+        next_num = current + 1
+        counter_file.write_text(str(next_num))
+        return next_num
 
     def _get_auth(self):
         return (self.username, self.password)
@@ -288,6 +301,12 @@ def publish_topic_episodes(topic: str, entries: List[dict], publish: bool = Fals
         raise ValueError(f"No export files found for topic: {topic}")
 
     print(f"Exporting files: {export_files.keys()}")
+
+    # Increment episode counter only on publish
+    episode_num = None
+    if publish:
+        episode_num = publisher._get_next_episode_number()
+        print(f"Episode counter incremented to {episode_num}")
 
     pdf_url = None
     if "pdf" in export_files:

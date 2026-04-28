@@ -74,9 +74,9 @@ class ShadowingConfig:
     default_language: str = DEFAULT_LANGUAGE
     output_dir: str = "shadowing_output"
     lead_in_ms: int = 600
-    final_silence_ms: int = 2500
+    final_silence_ms: int = 1000
     bitrate: str = "320k"
-    midpoint_cuts: bool = True
+    midpoint_cuts: bool = False
 
 
 @dataclass
@@ -284,7 +284,7 @@ class ShadowingPreparer:
         sound: AudioSegment, 
         text: str, 
         aligned_words: List[dict],
-        midpoint_cuts: bool = False
+        midpoint_cuts: bool
     ) -> AudioSegment:
         def clean_text(t: str) -> str:
             t = t.lower().translate(str.maketrans('', '', string.punctuation)).replace(" ", "")
