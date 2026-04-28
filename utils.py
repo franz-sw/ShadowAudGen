@@ -1,9 +1,20 @@
+import re
 from pathlib import Path
 import asyncio
 from pathlib import Path
 from typing import Optional
 import edge_tts
 import requests
+
+
+def get_slug(text: str) -> str:
+    """Create a URL-friendly slug from text, handling Hungarian accented characters."""
+    trans_map = str.maketrans(
+        'áéíóöőúüűÁÉÍÓÖŐÚÜŰ',
+        'aeiooouuuaeiooouuu'
+    )
+    text = text.translate(trans_map)
+    return re.sub(r'[^a-zA-Z0-9]+', '-', text.lower().strip()).strip('-')
 
 from config import (
     ELEVENLABS_API_KEY,

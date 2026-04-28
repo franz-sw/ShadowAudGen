@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional, Tuple, List
 
 from config import CASTOPOD_HOST, CASTOPOD_PODCAST_ID, CASTOPOD_USER_ID, CASTOPOD_AUTH_USERNAME, CASTOPOD_AUTH_PASSWORD, SHADOWING_SOURCES_BASE_URL
+from utils import get_slug
 
 
 class FTPClient:
@@ -64,7 +65,7 @@ class CastopodPublisher:
     def _find_export_files(self, topic: str) -> Optional[dict]:
         """Find all export files for a topic."""
         from config import OUTPUT_DIR
-        topic_slug = re.sub(r'[^a-zA-Z0-9]+', '_', topic.lower().strip())
+        topic_slug = get_slug(topic)
         topic_dir = Path(OUTPUT_DIR) / topic_slug
         export_dir = topic_dir / "export"
 
@@ -134,7 +135,7 @@ class CastopodPublisher:
             transcript_file: Optional[str] = None,
     ) -> dict:
         """Upload and create a new episode."""
-        slug = re.sub(r'[^a-z0-9]+', '-', slug.lower()).strip('-')
+        slug = get_slug(slug)
         url = f"{self.host}/episodes"
 
         with open(audio_file, "rb") as audio:
@@ -268,6 +269,8 @@ def publish_topic_episodes(topic: str, entries: List[dict], publish: bool = Fals
     if not export_files:
         raise ValueError(f"No export files found for topic: {topic}")
 
+    print(f"Exporting files: {export_files.keys()}")
+
     pdf_url = None
     if "pdf" in export_files:
         pdf_path = export_files["pdf"]
@@ -283,8 +286,7 @@ def publish_topic_episodes(topic: str, entries: List[dict], publish: bool = Fals
     base_title = export_files.get("base_name", entries[0]["topic"])
 
     if "shadowing_mp3" in export_files:
-        slug_shadow = f"{base_title.lower().replace(' ', '-')}"
-        slug_shadow = re.sub(r'[^a-z0-9-]', '', slug_shadow)
+        slug_shadow = get_slug(base_title)
 
         result = publisher.upload_and_publish_episode(
             title=f"{base_title}",
@@ -300,8 +302,7 @@ def publish_topic_episodes(topic: str, entries: List[dict], publish: bool = Fals
 
     if "plain_mp3" in export_files:
         plain_title = export_files.get("plain_base_name", entries[0]["topic"])
-        slug_plain = f"{plain_title.lower().replace(' ', '-')}"
-        slug_plain = re.sub(r'[^a-z0-9-]', '', slug_plain)
+        slug_plain = get_slug(plain_title)
 
         plain_description = publisher._generate_description(entries, pdf_url)
 

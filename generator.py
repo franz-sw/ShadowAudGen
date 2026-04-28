@@ -4,7 +4,7 @@ import shutil
 import re
 
 from config import OUTPUT_DIR, QUESTION_VOICE_ID, ELEVENLABS_VOICE_ID, DEFAULT_JSON, DEFAULT_LANGUAGE
-from utils import call_tts_api, call_local_tts
+from utils import call_tts_api, call_local_tts, get_slug
 from shadower_util import ShadowingPreparer, ShadowingConfig
 from db import ShadowingDB
 
@@ -19,7 +19,7 @@ class AudioGenerator:
 
     def _get_topic_dir(self, topic: str) -> Path:
         """Create clean topic-based subdirectory for organized storage."""
-        slug = re.sub(r'[^a-zA-Z0-9]+', '_', topic.lower().strip())
+        slug = get_slug(topic)
         topic_dir = self.output_dir / slug
         topic_dir.mkdir(parents=True, exist_ok=True)
         (topic_dir / "audio").mkdir(exist_ok=True)

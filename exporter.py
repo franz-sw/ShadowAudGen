@@ -6,6 +6,7 @@ from typing import List, Dict, Optional, Tuple
 from config import OUTPUT_DIR, QUESTION_VOICE_ID, ELEVENLABS_VOICE_ID, DEFAULT_JSON, DEFAULT_LANGUAGE, AUDIO_FILE_PREFIX
 from llm_util import translate_to_german
 from db import ShadowingDB
+from utils import get_slug
 from pydub import AudioSegment
 from fpdf import FPDF
 
@@ -26,9 +27,6 @@ class Exporter:
         counter_file.write_text(str(next_num))
         return next_num
 
-    def _get_topic_slug(self, topic: str) -> str:
-        return re.sub(r'[^a-zA-Z0-9]+', '_', topic.lower().strip())
-
     def _format_srt_time(self, ms: int) -> str:
         seconds, milliseconds = divmod(int(ms), 1000)
         minutes, seconds = divmod(seconds, 60)
@@ -36,7 +34,7 @@ class Exporter:
         return f"{hours:02d}:{minutes:02d}:{seconds:02d},{milliseconds:03d}"
 
     def _combine_shadowing_audios(self, topic: str, entries: List[Dict]) -> Tuple[Optional[str], Optional[int]]:
-        topic_slug = self._get_topic_slug(topic)
+        topic_slug = get_slug(topic)
         topic_dir = self.output_dir / topic_slug
         shadow_audio_dir = topic_dir / "shadowing"
         audio_dir = topic_dir / "audio"
@@ -220,7 +218,7 @@ class Exporter:
         return [s.strip() for s in sentences if s.strip()]
 
     def _export_topic_to_pdf(self, topic: str, topic_entries: List[Dict], combined_audio_path: Optional[str] = None, include_translations: bool = False, episode_num: int = None) -> str:
-        topic_slug = self._get_topic_slug(topic)
+        topic_slug = get_slug(topic)
         topic_dir = self.output_dir / topic_slug
         export_subdir = topic_dir / "export"
         export_subdir.mkdir(parents=True, exist_ok=True)
@@ -355,7 +353,7 @@ class Exporter:
         output_files = []
 
         for topic, topic_entries in grouped.items():
-            topic_slug = self._get_topic_slug(topic)
+            topic_slug = get_slug(topic)
             topic_dir = self.output_dir / topic_slug
             export_subdir = topic_dir / "export"
             export_subdir.mkdir(parents=True, exist_ok=True)
@@ -414,7 +412,7 @@ class Exporter:
 
         audio_files = {}
         for topic, topic_entries in grouped.items():
-            topic_slug = self._get_topic_slug(topic)
+            topic_slug = get_slug(topic)
             topic_dir = self.output_dir / topic_slug
             export_dir = topic_dir / "export"
             

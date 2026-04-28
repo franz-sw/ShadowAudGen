@@ -74,14 +74,8 @@ class ShadowingDB:
         return entries
 
     def _get_topic_slug(self, topic: str) -> str:
-        import re
-        # Map Hungarian accented characters to ASCII equivalents
-        trans_map = str.maketrans(
-            'áéíóöőúüűÁÉÍÓÖŐÚÜŰ',
-            'aeiooouuuaeiooouuu'
-        )
-        topic = topic.translate(trans_map)
-        return re.sub(r'[^a-zA-Z0-9]+', '_', topic.lower().strip())
+        from utils import get_slug
+        return get_slug(topic)
 
     def update_audio_paths(self, entry_id: int, question_audio: Optional[str] = None,
                           initial_answer_audio: Optional[str] = None,
