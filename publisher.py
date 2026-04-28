@@ -107,11 +107,25 @@ class CastopodPublisher:
         return files
 
     def _generate_description(self, entries: List[dict], pdf_url: str = None) -> str:
-        """Generate description with PDF link and transcript in markdown."""
+        """Generate description with PDF link, tone, format, and transcript in markdown."""
         parts = []
 
         if pdf_url:
             parts.append(f"[Transcript (with German Translation)]({pdf_url})")
+
+        # Add tone and format from first entry metadata (matches exporter.py logic)
+        if entries:
+            metadata = entries[0]
+            tone = metadata.get("tone", "")
+            fmt = metadata.get("format", "")
+            if fmt or tone:
+                if pdf_url:
+                    parts.append("")
+                if fmt:
+                    parts.append(f"**Format:** {fmt}")
+                if tone:
+                    parts.append(f"**Tone:** {tone}")
+                parts.append("")
 
         parts.append("---")
         parts.append("")
