@@ -77,6 +77,7 @@ class ShadowingConfig:
     final_silence_ms: int = 1000
     bitrate: str = "320k"
     midpoint_cuts: bool = False
+    chunk_fade_out_ms: int = 30
 
 
 @dataclass
@@ -361,5 +362,6 @@ class ShadowingPreparer:
             start_ms = int(aligned_words[i]["start"] * 1000)
             end_ms = int(aligned_words[j]["end"] * 1000)
             
-        return sound[start_ms:end_ms]
+        segment = sound[start_ms:end_ms]
+        return segment.fade_out(self.config.chunk_fade_out_ms)
 
