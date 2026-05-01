@@ -70,7 +70,7 @@ _align_models = {}
 class ShadowingConfig:
     """Global default parameters."""
     default_multiplier: float = 1.5
-    default_initial_break_ms: int = 1000
+    default_initial_break_ms: int = 1500
     default_language: str = DEFAULT_LANGUAGE
     output_dir: str = "shadowing_output"
     lead_in_ms: int = 600
