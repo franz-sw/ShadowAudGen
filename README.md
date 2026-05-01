@@ -1,6 +1,6 @@
 # Shadowing Audio Generator
 
-Tool to generate **shadowing practice audios for language learning** (Hungarian → English) with **auto-injected breaks based on predefined repetition markers**.
+Tool to generate **shadowing practice audios for language learning** (e.g. Hungarian → English) with **auto-injected breaks based on predefined repetition markers**.
 
 ## What This Code Does
 
