@@ -2,6 +2,8 @@
 
 Tool to generate **shadowing practice audios for language learning** (e.g. Hungarian → English) with **auto-injected breaks based on predefined repetition markers**.
 
+Examples for generated output: [https://pc.franz-sw.de/@hungarian_shadowing/episodes](https://pc.franz-sw.de/@hungarian_shadowing/episodes)
+
 ## What This Code Does
 
 This project creates shadowing audios for language learning. The key workflow:
