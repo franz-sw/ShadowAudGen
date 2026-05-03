@@ -52,8 +52,10 @@ class AudioGenerator:
                 text=entry["answer"],
                 output_path=str(a_path),
                 voice_id=ELEVENLABS_VOICE_ID,
-                speed=0.92,
-                overwrite=overwrite
+                speed=0.94,
+                overwrite=overwrite,
+                stability=0.6,
+                similarity_boost=0.80
             ):
                 success = False
         else:
