@@ -301,23 +301,34 @@ class ShadowingPreparer:
             for j in range(i, len(aligned_words)):
                 chunk = "".join(clean_text(w["word"]) for w in aligned_words[i:j+1])
 
-                # If the spoken chunk matches the target text
+                # If the spoken chunk matches the target text exactly
                 if target == chunk:
                     best_indices = (i, j)
+                    print(f"DEBUG EXACT MATCH: text='{text}' target='{target}'")
+                    print(f"  indices=({i}, {j})")
+                    print(f"  words={[w['word'] for w in aligned_words[i:j+1]]}")
+                    print(f"  times=({aligned_words[i]['start']:.3f}-{aligned_words[j]['end']:.3f})")
+                    if j < len(aligned_words) - 1:
+                        print(f"  NEXT word: '{aligned_words[j+1]['word']}' starts at {aligned_words[j+1]['start']:.3f}")
                     break
             if best_indices:
                 break
                 
         # 2. Try to find substring match if exact fails
+        # Only use this when target is a proper substring (not just contained with extra chars)
         if best_indices is None:
+            best_len_diff = float('inf')
             for i in range(len(aligned_words)):
                 for j in range(i, len(aligned_words)):
                     chunk = "".join(clean_text(w["word"]) for w in aligned_words[i:j+1])
 
-                    if target in chunk and len(chunk) - len(target) < 10: # Close enough match
-                        best_indices = (i, j)
-                        break
-                if best_indices:
+                    if target in chunk:
+                        len_diff = len(chunk) - len(target)
+                        # Prefer matches where we're not adding too many extra characters
+                        if len_diff < best_len_diff and len_diff < 5:
+                            best_len_diff = len_diff
+                            best_indices = (i, j)
+                if best_indices and best_len_diff == 0:
                     break
 
         # 3. Try difflib sequence matcher for fuzzy matching
@@ -328,11 +339,11 @@ class ShadowingPreparer:
                 for j in range(i, min(i + len(text.split()) + 5, len(aligned_words))):
                     chunk = "".join(clean_text(w["word"]) for w in aligned_words[i:j+1])
                     ratio = difflib.SequenceMatcher(None, target, chunk).ratio()
-                    if ratio > best_ratio:
+                    if ratio > best_ratio and len(chunk) >= len(target) * 0.9:
                         best_ratio = ratio
                         best_match = (i, j)
 
-            if best_ratio > 0.80 and best_match:
+            if best_ratio > 0.85 and best_match:
                 best_indices = best_match
                 print(f"⚠️ Warning: Used fuzzy match (ratio {best_ratio:.2f}) for: '{text}'")
             else:
@@ -361,7 +372,7 @@ class ShadowingPreparer:
             # Direct cuts at word boundaries
             start_ms = int(aligned_words[i]["start"] * 1000)
             end_ms = int(aligned_words[j]["end"] * 1000)
-            
+
         segment = sound[start_ms:end_ms]
         return segment.fade_out(self.config.chunk_fade_out_ms)
 
