@@ -304,12 +304,12 @@ class ShadowingPreparer:
                 # If the spoken chunk matches the target text exactly
                 if target == chunk:
                     best_indices = (i, j)
-                    print(f"DEBUG EXACT MATCH: text='{text}' target='{target}'")
-                    print(f"  indices=({i}, {j})")
-                    print(f"  words={[w['word'] for w in aligned_words[i:j+1]]}")
-                    print(f"  times=({aligned_words[i]['start']:.3f}-{aligned_words[j]['end']:.3f})")
-                    if j < len(aligned_words) - 1:
-                        print(f"  NEXT word: '{aligned_words[j+1]['word']}' starts at {aligned_words[j+1]['start']:.3f}")
+                    # print(f"DEBUG EXACT MATCH: text='{text}' target='{target}'")
+                    # print(f"  indices=({i}, {j})")
+                    # print(f"  words={[w['word'] for w in aligned_words[i:j+1]]}")
+                    # print(f"  times=({aligned_words[i]['start']:.3f}-{aligned_words[j]['end']:.3f})")
+                    # if j < len(aligned_words) - 1:
+                        # print(f"  NEXT word: '{aligned_words[j+1]['word']}' starts at {aligned_words[j+1]['start']:.3f}")
                     break
             if best_indices:
                 break
@@ -375,4 +375,89 @@ class ShadowingPreparer:
 
         segment = sound[start_ms:end_ms]
         return segment.fade_out(self.config.chunk_fade_out_ms)
+
+
+def check_and_fix_word_spacing(
+    audio_path: str,
+    min_gap_ms: int = 80,
+    language: str = "hu",
+    slowdown_factor: float = 1.1,
+    max_slowdowns: int = 3,
+) -> str:
+    """
+    Check if aligned words in audio have sufficient gaps between them.
+    If gaps are too small, slows down the audio until spacing is adequate.
+
+    Args:
+        audio_path: Path to the audio file
+        min_gap_ms: Minimum acceptable gap between consecutive words in milliseconds
+        language: Language code for whisper alignment
+        slowdown_factor: How much to slow down the audio on each iteration (e.g., 1.1 = 10% slower)
+        max_slowdowns: Maximum number of slowdown iterations before giving up
+
+    Returns:
+        Path to the (possibly modified) audio file
+    """
+    sound = AudioSegment.from_file(audio_path)
+    global _whisper_model, _align_models, model_storage, model_name
+
+    # Load whisper model if needed
+    if _whisper_model is None:
+        os.makedirs(model_storage, exist_ok=True)
+        _whisper_model = whisperx.load_model(
+            model_name,
+            device="cpu",
+            compute_type="int8",
+            download_root=model_storage,
+        )
+
+    for attempt in range(max_slowdowns + 1):
+        if attempt > 0:
+            sound = sound.speedup(playback_speed=1.0 / slowdown_factor)
+
+        # Convert to numpy
+        audio_np = np.array(sound.set_frame_rate(16000).set_channels(1).get_array_of_samples())
+        audio_np = audio_np.astype(np.float32) / np.iinfo(np.int16).max
+
+        # Transcribe
+        result = _whisper_model.transcribe(audio_np, language=language)
+
+        # Align
+        if language not in _align_models:
+            _align_models[language] = whisperx.load_align_model(language_code=language, device="cpu")
+        model_a, metadata = _align_models[language]
+
+        aligned_result = whisperx.align(
+            result["segments"], model_a, metadata, audio_np, "cpu", return_char_alignments=False
+        )
+
+        words = [
+            w for seg in aligned_result["segments"]
+            for w in seg.get("words", [])
+            if "start" in w and "end" in w
+        ]
+
+        if len(words) < 2:
+            break
+
+        # Check gaps
+        min_found_gap = float("inf")
+        for k in range(len(words) - 1):
+            gap_ms = int((words[k + 1]["start"] - words[k]["end"]) * 1000)
+            min_found_gap = min(min_found_gap, gap_ms)
+
+        if min_found_gap >= min_gap_ms:
+            if attempt == 0:
+                print(f"  Word spacing OK (min gap: {min_found_gap}ms)")
+            else:
+                print(f"  Word spacing fixed after {attempt} slowdown(s) (min gap: {min_found_gap}ms)")
+                out_path = audio_path
+                Path(out_path).parent.mkdir(parents=True, exist_ok=True)
+                sound.export(out_path, format="mp3", bitrate="320k")
+            return audio_path
+
+        print(f"  Attempt {attempt + 1}: min gap {min_found_gap}ms < {min_gap_ms}ms threshold, slowing down...")
+
+    print(f"  WARNING: Could not achieve {min_gap_ms}ms gaps after {max_slowdowns} slowdowns")
+    return audio_path
 

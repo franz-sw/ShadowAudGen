@@ -5,7 +5,7 @@ import re
 
 from config import OUTPUT_DIR, QUESTION_VOICE_ID, ELEVENLABS_VOICE_ID, DEFAULT_JSON, DEFAULT_LANGUAGE
 from utils import call_tts_api, call_local_tts, get_slug
-from shadower_util import ShadowingPreparer, ShadowingConfig
+from shadower_util import ShadowingPreparer, ShadowingConfig, check_and_fix_word_spacing
 from db import ShadowingDB
 
 
@@ -60,6 +60,9 @@ class AudioGenerator:
                 success = False
         else:
             print(f"  Initial answer audio exists: {a_path}")
+
+        if a_path.exists():
+            check_and_fix_word_spacing(str(a_path))
 
         return success
 
