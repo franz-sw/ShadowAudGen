@@ -75,26 +75,47 @@ class AudioGenerator:
             return None
 
         shadow_path = topic_dir / "shadowing" / f"shadow_{entry_id:03d}.mp3"
+        single_path = topic_dir / "shadowing" / f"single_{entry_id:03d}.mp3"
 
+        # Generate normal shadowing track
         if shadow_path.exists() and not overwrite:
             print(f"  Shadowing audio exists: {shadow_path}")
-            return str(shadow_path)
+        else:
+            print(f"Generating CUSTOM SHADOWING audio for entry {entry_id} using metadata...")
+            try:
+                self.shadow_preparer = ShadowingPreparer(
+                    config=ShadowingConfig(output_dir=str(topic_dir / "shadowing"))
+                )
+                self.shadow_preparer.create_shadowing_track(
+                    audio_path=str(init_a_path),
+                    script=entry.get("answer_metadata", entry.get("answer", "")),
+                    output_filename=f"shadow_{entry_id:03d}.mp3",
+                    language=language,
+                    single_repeat=False
+                )
+            except Exception as e:
+                print(f"  ❌ Shadowing generation failed for entry {entry_id}: {e}")
 
-        print(f"Generating CUSTOM SHADOWING audio for entry {entry_id} using metadata...")
-        try:
-            self.shadow_preparer = ShadowingPreparer(
-                config=ShadowingConfig(output_dir=str(topic_dir / "shadowing"))
-            )
-            output_path = self.shadow_preparer.create_shadowing_track(
-                audio_path=str(init_a_path),
-                script=entry.get("answer_metadata", entry.get("answer", "")),
-                output_filename=f"shadow_{entry_id:03d}.mp3",
-                language=language
-            )
-            return output_path
-        except Exception as e:
-            print(f"  ❌ Shadowing generation failed for entry {entry_id}: {e}")
-            return None
+        # Generate single shadowing track
+        if single_path.exists() and not overwrite:
+            print(f"  Single shadowing audio exists: {single_path}")
+        else:
+            print(f"Generating SINGLE SHADOWING audio for entry {entry_id} using metadata...")
+            try:
+                self.shadow_preparer = ShadowingPreparer(
+                    config=ShadowingConfig(output_dir=str(topic_dir / "shadowing"))
+                )
+                self.shadow_preparer.create_shadowing_track(
+                    audio_path=str(init_a_path),
+                    script=entry.get("answer_metadata", entry.get("answer", "")),
+                    output_filename=f"single_{entry_id:03d}.mp3",
+                    language=language,
+                    single_repeat=True
+                )
+            except Exception as e:
+                print(f"  ❌ Single shadowing generation failed for entry {entry_id}: {e}")
+
+        return str(shadow_path) if shadow_path.exists() else None
 
     def run_full_generation(self, json_path: str = None, overwrite: bool = False, language: str = DEFAULT_LANGUAGE, export_all: bool = False) -> None:
         """Orchestrate the full workflow: load JSON -> generate audios."""

@@ -119,7 +119,8 @@ class ShadowingPreparer:
         audio_path: str,
         script: str,
         output_filename: Optional[str] = None,
-        language: Optional[str] = None
+        language: Optional[str] = None,
+        single_repeat: bool = False
     ) -> str:
         """
         Main function.
@@ -129,6 +130,7 @@ class ShadowingPreparer:
             script: Text using [block] and [repeat] tags
             output_filename: Optional name for the output file
             language: Language code for transcription (default hu, no autodetect)
+            single_repeat: If True, each chunk is only played once.
         """
         sound = AudioSegment.from_file(audio_path)
         output = AudioSegment.silent(self.config.lead_in_ms)
@@ -136,7 +138,7 @@ class ShadowingPreparer:
         blocks = self._parse_script(script)
         effective_lang = language or self.config.default_language
         
-        print("Transcribing and aligning audio... This may take a moment.")
+        print(f"Transcribing and aligning audio (single_repeat={single_repeat})... This may take a moment.")
         aligned_words = self._get_aligned_words(sound, effective_lang)
         
         for block in blocks:
@@ -149,7 +151,7 @@ class ShadowingPreparer:
             # 2. Process repeat chunks if not ignored
             if not block.ignore_repeat and block.repeat_chunks:
                 output = self._process_repeats(
-                    output, sound, block.repeat_chunks, block.multiplier, aligned_words
+                    output, sound, block.repeat_chunks, block.multiplier, aligned_words, single_repeat=single_repeat
                 )
         
         output += AudioSegment.silent(self.config.final_silence_ms)
@@ -222,7 +224,8 @@ class ShadowingPreparer:
         sound: AudioSegment,
         chunks: List[Tuple[str, int]],
         multiplier: float,
-        aligned_words: List[dict]
+        aligned_words: List[dict],
+        single_repeat: bool = False
     ) -> AudioSegment:
         """Each chunk is played twice by default, plus any extra repetitions."""
         for text, extra_repeats in chunks:
@@ -231,8 +234,12 @@ class ShadowingPreparer:
             segment = self._extract_audio(sound, text, aligned_words, self.config.midpoint_cuts)
             gap_ms = int(len(segment) * multiplier)
             
-            # Initial play (1) + standard repeat (1) + any extra repetitions requested
-            total_plays = 2 + extra_repeats 
+            if single_repeat:
+                total_plays = 1
+            else:
+                # Initial play (1) + standard repeat (1) + any extra repetitions requested
+                total_plays = 2 + extra_repeats 
+                
             for _ in range(total_plays):
                 output = output.append(segment, crossfade=50)
                 output += AudioSegment.silent(gap_ms + SEGMENT_BREAK_MS)

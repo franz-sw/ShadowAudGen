@@ -45,11 +45,13 @@ class Exporter:
         shadow_files = []
         question_files = []
         plain_files = []
+        single_files = []
         for entry in entries:
             entry_id = entry.get("id")
             if entry_id:
                 question_path = audio_dir / f"q_{entry_id:03d}.mp3"
                 shadow_path = shadow_audio_dir / f"shadow_{entry_id:03d}.mp3"
+                single_path = shadow_audio_dir / f"single_{entry_id:03d}.mp3"
                 plain_path = audio_dir / f"a_init_{entry_id:03d}.mp3"
                 if question_path.exists():
                     question_files.append((entry_id, question_path))
@@ -60,6 +62,11 @@ class Exporter:
                     shadow_files.append((entry_id, shadow_path))
                 else:
                     print(f"  Warning: Shadow audio for entry {entry_id} is missing. Skipping combined export for topic '{topic}'.")
+                    return None, None
+                if single_path.exists():
+                    single_files.append((entry_id, single_path))
+                else:
+                    print(f"  Warning: Single audio for entry {entry_id} is missing. Skipping combined export for topic '{topic}'.")
                     return None, None
                 if plain_path.exists():
                     plain_files.append((entry_id, plain_path))
@@ -74,10 +81,12 @@ class Exporter:
 
         question_files.sort(key=lambda x: x[0])
         shadow_files.sort(key=lambda x: x[0])
+        single_files.sort(key=lambda x: x[0])
         plain_files.sort(key=lambda x: x[0])
 
         episode_num = self._get_next_episode_number()
         base_name = f"{episode_num} - {AUDIO_FILE_PREFIX} - {topic}"
+        single_base_name = f"{episode_num} - {AUDIO_FILE_PREFIX}[SINGLE] - {topic}"
         plain_base_name = f"{episode_num} - {AUDIO_FILE_PREFIX}[PLAIN] - {topic}"
         export_dir = topic_dir / "export"
         export_dir.mkdir(parents=True, exist_ok=True)
@@ -145,6 +154,65 @@ class Exporter:
         shadow_srt_path = export_dir / f"{base_name}.srt"
         with open(shadow_srt_path, "w", encoding="utf-8") as f:
             f.write("\n".join(shadow_srt))
+
+        combined_single = AudioSegment.empty()
+        single_chapters = []
+        single_srt = []
+        current_time_single = 0
+        srt_idx_single = 1
+
+        for (eid, qf), (_, sif) in zip(question_files, single_files):
+            q_audio = AudioSegment.from_mp3(str(qf))
+            si_audio = AudioSegment.from_mp3(str(sif))
+            q_dur = len(q_audio)
+            si_dur = len(si_audio)
+            
+            entry = entry_map.get(eid, {})
+            q_text = entry.get("question", "")
+            a_text = entry.get("answer", "")
+            
+            single_chapters.append({
+                "startTime": current_time_single / 1000.0,
+                "title": q_text
+            })
+            
+            q_start = current_time_single
+            q_end = current_time_single + q_dur
+            single_srt.append(f"{srt_idx_single}\n{self._format_srt_time(q_start)} --> {self._format_srt_time(q_end)}\n{q_text}\n")
+            srt_idx_single += 1
+            
+            si_start = q_end
+            si_end = q_end + si_dur
+            single_srt.append(f"{srt_idx_single}\n{self._format_srt_time(si_start)} --> {self._format_srt_time(si_end)}\n{a_text}\n")
+            srt_idx_single += 1
+            
+            combined_single += q_audio
+            combined_single += si_audio
+            current_time_single += q_dur + si_dur
+
+        combined_single = combined_single.normalize(headroom=0.1)
+        combined_single += break_sil + outro
+
+        single_path = export_dir / f"{single_base_name}.mp3"
+        export_kwargs_single = {
+            "format": "mp3",
+            "tags": {"artist": "Árnyékmester", "title": single_base_name}
+        }
+        if cover_path:
+            export_kwargs_single["cover"] = str(cover_path)
+            
+        combined_single.export(str(single_path), **export_kwargs_single)
+        print(f"  Combined {len(single_files)} question+single audio pairs into {single_path.name}")
+        
+        # Save single JSON chapters
+        single_json_path = export_dir / f"{single_base_name}.json"
+        with open(single_json_path, "w", encoding="utf-8") as f:
+            json.dump({"version": "1.2.0", "chapters": single_chapters}, f, indent=2, ensure_ascii=False)
+            
+        # Save single SRT
+        single_srt_path = export_dir / f"{single_base_name}.srt"
+        with open(single_srt_path, "w", encoding="utf-8") as f:
+            f.write("\n".join(single_srt))
 
         combined_plain = AudioSegment.empty()
         plain_chapters = []
@@ -416,16 +484,20 @@ class Exporter:
             
             if export_dir.exists():
                 all_mp3s = list(export_dir.glob("*.mp3"))
-                shadowing_files = [f for f in all_mp3s if " [MK1]" in f.name and "[PLAIN]" not in f.name]
+                shadowing_files = [f for f in all_mp3s if " [MK1]" in f.name and "[PLAIN]" not in f.name and "[SINGLE]" not in f.name]
                 plain_files = [f for f in all_mp3s if "[PLAIN]" in f.name]
+                single_files = [f for f in all_mp3s if "[SINGLE]" in f.name]
 
                 shadowing_files.sort()
                 plain_files.sort()
+                single_files.sort()
 
                 if shadowing_files:
                     audio_files[topic] = str(shadowing_files[-1])
                 if plain_files:
                     audio_files[f"{topic}_plain"] = str(plain_files[-1])
+                if single_files:
+                    audio_files[f"{topic}_single"] = str(single_files[-1])
 
         return audio_files
 

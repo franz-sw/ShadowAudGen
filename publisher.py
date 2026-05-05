@@ -99,6 +99,16 @@ class CastopodPublisher:
                     files["plain_json"] = str(plain_json)
                 if plain_srt.exists():
                     files["plain_srt"] = str(plain_srt)
+            elif "[SINGLE]" in name:
+                files["single_mp3"] = str(mp3)
+                files["single_base_name"] = name
+                # Direct path construction for single json/srt
+                single_json = export_dir / f"{name}.json"
+                single_srt = export_dir / f"{name}.srt"
+                if single_json.exists():
+                    files["single_json"] = str(single_json)
+                if single_srt.exists():
+                    files["single_srt"] = str(single_srt)
             else:
                 files["shadowing_mp3"] = str(mp3)
                 files["base_name"] = name
@@ -355,5 +365,23 @@ def publish_topic_episodes(topic: str, entries: List[dict], publish: bool = Fals
         )
         results["plain"] = result
         print(f"Plain episode uploaded: {plain_title}")
+
+    if "single_mp3" in export_files:
+        single_title = export_files.get("single_base_name", entries[0]["topic"])
+        slug_single = get_slug(single_title)
+
+        single_description = publisher._generate_description(entries, pdf_url)
+
+        result = publisher.upload_and_publish_episode(
+            title=f"{single_title}",
+            slug=slug_single,
+            audio_file=export_files["single_mp3"],
+            description=single_description,
+            chapters_file=export_files.get("single_json"),
+            transcript_file=export_files.get("single_srt"),
+            publish=publish,
+        )
+        results["single"] = result
+        print(f"Single episode uploaded: {single_title}")
 
     return results
