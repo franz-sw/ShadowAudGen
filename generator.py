@@ -55,7 +55,8 @@ class AudioGenerator:
                 speed=0.94,
                 overwrite=overwrite,
                 stability=0.6,
-                similarity_boost=0.80
+                similarity_boost=0.80,
+                sentence_suffix="\n",
             ):
                 success = False
         else:

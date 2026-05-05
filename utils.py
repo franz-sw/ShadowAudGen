@@ -49,6 +49,7 @@ def call_tts_api(
         previous_text: str = "",
         stability: float = 0.5,
         similarity_boost: float = 0.75,
+        sentence_suffix: str = "",
 ) -> bool:
     """Call ElevenLabs TTS API with flexible voice and speed. Speed is always 1.0 for sentences per spec."""
     if not ELEVENLABS_API_KEY:
@@ -64,6 +65,9 @@ def call_tts_api(
         voice_id = ELEVENLABS_VOICE_ID
 
     model_id = ELEVENLABS_MODEL_ID
+
+    if sentence_suffix:
+        text = re.sub(r'([.!?])', r'\1' + re.escape(sentence_suffix), text)
 
     try:
         response = requests.post(
