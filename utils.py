@@ -98,6 +98,21 @@ def call_tts_api(
             f.write(response.content)
 
         print(f"  Generated {len(response.content):,} bytes TTS for '{text[:40]}...' (speed={speed})")
+        
+        # Optimize with ffmpeg
+        import subprocess
+        temp_path = str(path) + ".temp"
+        path.rename(temp_path)
+        try:
+            subprocess.run([
+                "ffmpeg", "-y", "-i", temp_path,
+                "-af", "highpass=f=80,treble=g=5,loudnorm",
+                "-c:a", "pcm_s16le", "-ar", "44100",
+                str(path)
+            ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+            
         return True
 
     except Exception as e:
@@ -111,6 +126,21 @@ async def _generate_edge_tts(text: str, output_path: str, voice: str) -> bool:
         path.parent.mkdir(parents=True, exist_ok=True)
         communicate = edge_tts.Communicate(text, voice, pitch = "-10Hz")
         await communicate.save(output_path)
+        
+        # Optimize with ffmpeg
+        import subprocess
+        temp_path = str(path) + ".temp"
+        path.rename(temp_path)
+        try:
+            subprocess.run([
+                "ffmpeg", "-y", "-i", temp_path,
+                "-af", "highpass=f=80,treble=g=5,loudnorm",
+                "-c:a", "pcm_s16le", "-ar", "44100",
+                str(path)
+            ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        finally:
+            Path(temp_path).unlink(missing_ok=True)
+            
         return True
     except Exception as e:
         print(f"  edge-tts failed: {e}")

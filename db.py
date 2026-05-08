@@ -64,9 +64,9 @@ class ShadowingDB:
             topic_slug = self._get_topic_slug(topic)
             topic_dir = self.output_dir / topic_slug
 
-            q_path = topic_dir / "audio" / f"q_{entry_id:03d}.mp3"
-            a_init_path = topic_dir / "audio" / f"a_init_{entry_id:03d}.mp3"
-            shadow_path = topic_dir / "shadowing" / f"shadow_{entry_id:03d}.mp3"
+            q_path = topic_dir / "audio" / f"q_{entry_id:03d}.wav"
+            a_init_path = topic_dir / "audio" / f"a_init_{entry_id:03d}.wav"
+            shadow_path = topic_dir / "shadowing" / f"shadow_{entry_id:03d}.wav"
 
             entry["question_audio"] = str(q_path) if q_path.exists() else None
             entry["initial_answer_audio"] = str(a_init_path) if a_init_path.exists() else None

@@ -30,8 +30,8 @@ class AudioGenerator:
         """Generate question and initial answer audio in topic-specific folder."""
         topic_dir = self._get_topic_dir(entry["topic"])
         audio_subdir = topic_dir / "audio"
-        q_path = audio_subdir / f"q_{entry_id:03d}.mp3"
-        a_path = audio_subdir / f"a_init_{entry_id:03d}.mp3"
+        q_path = audio_subdir / f"q_{entry_id:03d}.wav"
+        a_path = audio_subdir / f"a_init_{entry_id:03d}.wav"
 
         success = True
 
@@ -69,14 +69,14 @@ class AudioGenerator:
         """Create customized shadowing audio in topic-specific folder."""
         topic_dir = self._get_topic_dir(entry["topic"])
         audio_subdir = topic_dir / "audio"
-        init_a_path = audio_subdir / f"a_init_{entry_id:03d}.mp3"
+        init_a_path = audio_subdir / f"a_init_{entry_id:03d}.wav"
 
         if not init_a_path.exists():
             print(f"  No initial answer audio found for entry {entry_id}")
             return None
 
-        shadow_path = topic_dir / "shadowing" / f"shadow_{entry_id:03d}.mp3"
-        single_path = topic_dir / "shadowing" / f"single_{entry_id:03d}.mp3"
+        shadow_path = topic_dir / "shadowing" / f"shadow_{entry_id:03d}.wav"
+        single_path = topic_dir / "shadowing" / f"single_{entry_id:03d}.wav"
 
         # Generate normal shadowing track
         if shadow_path.exists() and not overwrite:
@@ -90,7 +90,7 @@ class AudioGenerator:
                 self.shadow_preparer.create_shadowing_track(
                     audio_path=str(init_a_path),
                     script=entry.get("answer_metadata", entry.get("answer", "")),
-                    output_filename=f"shadow_{entry_id:03d}.mp3",
+                    output_filename=f"shadow_{entry_id:03d}.wav",
                     language=language,
                     single_repeat=False
                 )
@@ -109,7 +109,7 @@ class AudioGenerator:
                 self.shadow_preparer.create_shadowing_track(
                     audio_path=str(init_a_path),
                     script=entry.get("answer_metadata", entry.get("answer", "")),
-                    output_filename=f"single_{entry_id:03d}.mp3",
+                    output_filename=f"single_{entry_id:03d}.wav",
                     language=language,
                     single_repeat=True
                 )

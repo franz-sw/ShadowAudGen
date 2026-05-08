@@ -49,10 +49,10 @@ class Exporter:
         for entry in entries:
             entry_id = entry.get("id")
             if entry_id:
-                question_path = audio_dir / f"q_{entry_id:03d}.mp3"
-                shadow_path = shadow_audio_dir / f"shadow_{entry_id:03d}.mp3"
-                single_path = shadow_audio_dir / f"single_{entry_id:03d}.mp3"
-                plain_path = audio_dir / f"a_init_{entry_id:03d}.mp3"
+                question_path = audio_dir / f"q_{entry_id:03d}.wav"
+                shadow_path = shadow_audio_dir / f"shadow_{entry_id:03d}.wav"
+                single_path = shadow_audio_dir / f"single_{entry_id:03d}.wav"
+                plain_path = audio_dir / f"a_init_{entry_id:03d}.wav"
                 if question_path.exists():
                     question_files.append((entry_id, question_path))
                 else:
@@ -100,8 +100,8 @@ class Exporter:
         srt_idx_shadow = 1
 
         for (eid, qf), (_, sf) in zip(question_files, shadow_files):
-            q_audio = AudioSegment.from_mp3(str(qf))
-            s_audio = AudioSegment.from_mp3(str(sf))
+            q_audio = AudioSegment.from_wav(str(qf))
+            s_audio = AudioSegment.from_wav(str(sf))
             q_dur = len(q_audio)
             s_dur = len(s_audio)
             
@@ -162,8 +162,8 @@ class Exporter:
         srt_idx_single = 1
 
         for (eid, qf), (_, sif) in zip(question_files, single_files):
-            q_audio = AudioSegment.from_mp3(str(qf))
-            si_audio = AudioSegment.from_mp3(str(sif))
+            q_audio = AudioSegment.from_wav(str(qf))
+            si_audio = AudioSegment.from_wav(str(sif))
             q_dur = len(q_audio)
             si_dur = len(si_audio)
             
@@ -221,8 +221,8 @@ class Exporter:
         srt_idx_plain = 1
 
         for (eid, qf), (_, pf) in zip(question_files, plain_files):
-            q_audio = AudioSegment.from_mp3(str(qf))
-            p_audio = AudioSegment.from_mp3(str(pf))
+            q_audio = AudioSegment.from_wav(str(qf))
+            p_audio = AudioSegment.from_wav(str(pf))
             q_dur = len(q_audio)
             p_dur = len(p_audio)
             

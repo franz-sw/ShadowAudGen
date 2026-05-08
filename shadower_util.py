@@ -156,8 +156,8 @@ class ShadowingPreparer:
         
         output += AudioSegment.silent(self.config.final_silence_ms)
         
-        out_path = self.output_dir / (output_filename or Path(audio_path).stem + "_shadowing.mp3")
-        output.export(str(out_path), format="mp3", bitrate=self.config.bitrate)
+        out_path = self.output_dir / (output_filename or Path(audio_path).stem + "_shadowing.wav")
+        output.export(str(out_path), format="wav")
         print(f"✅ Shadowing track saved: {out_path}")
         return str(out_path)
 
