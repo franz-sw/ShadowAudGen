@@ -86,6 +86,7 @@ def call_tts_api(
                     "similarity_boost": similarity_boost,
                     "speed": speed,
                     "previous_text": previous_text,
+                    "use_speaker_boost": True
                 }
             },
             timeout=30,
