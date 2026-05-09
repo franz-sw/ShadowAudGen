@@ -306,7 +306,7 @@ class Exporter:
         pdf.add_font("Segoe UI", "I", r"C:\Windows\Fonts\segoeuii.ttf", uni=True)
         pdf.add_page()
         pdf.set_font("Segoe UI", "B", 16)
-        pdf.cell(0, 10, topic, ln=True, align="C")
+        pdf.multi_cell(0, 10, topic, align="C")
         pdf.ln(5)
         pdf.set_font("Segoe UI", size=11)
 
@@ -354,7 +354,7 @@ class Exporter:
         pdf.add_page()
         if include_translations:
             pdf.set_font("Segoe UI", "B", 16)
-            pdf.cell(0, 10, f"{topic} - German Translation", ln=True, align="C")
+            pdf.multi_cell(0, 10, f"{topic} - German Translation", align="C")
             pdf.ln(5)
 
             for entry in topic_entries:

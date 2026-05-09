@@ -141,7 +141,10 @@ class ShadowingPreparer:
         print(f"Transcribing and aligning audio (single_repeat={single_repeat})... This may take a moment.")
         aligned_words = self._get_aligned_words(sound, effective_lang)
         
-        for block in blocks:
+        print(f"Processing {len(blocks)} block(s)...")
+        for idx, block in enumerate(blocks, 1):
+            if block.initial_text:
+                print(f"  Block {idx}/{len(blocks)}: initial sentence \"{block.initial_text[:50]}{'...' if len(block.initial_text) > 50 else ''}\"")
             # 1. Initial full sentence + break
             if block.initial_text:
                 audio = self._extract_audio(sound, block.initial_text, aligned_words, self.config.midpoint_cuts)
@@ -229,6 +232,7 @@ class ShadowingPreparer:
     ) -> AudioSegment:
         """Each chunk is played twice by default, plus any extra repetitions."""
         for text, extra_repeats in chunks:
+            print(f"    Processing chunk: \"{text[:40]}{'...' if len(text) > 40 else ''}\"")
             if not text:
                 continue
             segment = self._extract_audio(sound, text, aligned_words, self.config.midpoint_cuts)
@@ -253,6 +257,7 @@ class ShadowingPreparer:
         # 1. Download/Load the whisper model if not already done
         if _whisper_model is None:
             os.makedirs(model_storage, exist_ok=True)
+            print("Loading Whisper model...")
             # Change device="cuda" and compute_type="float16" if you have a GPU
             _whisper_model = whisperx.load_model(
                 model_name, 
@@ -261,6 +266,7 @@ class ShadowingPreparer:
                 download_root=model_storage
             )
             
+        print("Transcribing audio...")
         # 2. Convert AudioSegment to numpy array directly (avoids torchcodec issues with FFmpeg 8)
         audio_np = np.array(sound.set_frame_rate(16000).set_channels(1).get_array_of_samples())
         audio_np = audio_np.astype(np.float32) / np.iinfo(np.int16).max
@@ -269,11 +275,13 @@ class ShadowingPreparer:
         result = _whisper_model.transcribe(audio_np, language=language)
         lang = language
         
+        print("Loading alignment model...")
         # 4. Load Alignment Model (cached per language)
         if lang not in _align_models:
             _align_models[lang] = whisperx.load_align_model(language_code=lang, device="cpu")
         model_a, metadata = _align_models[lang]
         
+        print("Aligning word-level timestamps...")
         # 5. Force Align for precise word-level timestamps
         aligned_result = whisperx.align(
             result["segments"], model_a, metadata, audio_np, "cpu", return_char_alignments=False
@@ -303,6 +311,7 @@ class ShadowingPreparer:
         # Find the best matching word indices (store for midpoint calculation)
         best_indices = None
         
+        print(f"      Aligning \"{text[:40]}{'...' if len(text) > 40 else ''}\"...")
         # 1. Try to find exact match
         for i in range(len(aligned_words)):
             for j in range(i, len(aligned_words)):

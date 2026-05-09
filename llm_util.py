@@ -15,6 +15,7 @@ def translate_to_german(sentences: List[str]) -> List[str]:
     prompt = "Translate the following sentences to German. Return ONLY the translations, one per line, no numbering, no explanation:\n\n"
     prompt += "\n".join(sentences)
 
+    print(f"Translating {len(sentences)} sentence(s) to German via {LLM_MODEL}...")
     try:
         response = requests.post(
             "https://api.x.ai/v1/chat/completions",
@@ -34,6 +35,7 @@ def translate_to_german(sentences: List[str]) -> List[str]:
         )
         response.raise_for_status()
 
+        print("  Response received, parsing translations...")
         result = response.json()
         content = result["choices"][0]["message"]["content"]
 
@@ -42,8 +44,9 @@ def translate_to_german(sentences: List[str]) -> List[str]:
         if len(translations) < len(sentences):
             translations = (translations + [""] * len(sentences))[:len(sentences)]
         
+        print(f"  Got {len(translations)} translation(s)")
         return translations
 
     except Exception as e:
-        print(f"Translation failed: {e}")
+        print(f"  Translation failed: {e}")
         return [""] * len(sentences)
