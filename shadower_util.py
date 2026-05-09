@@ -311,7 +311,6 @@ class ShadowingPreparer:
         # Find the best matching word indices (store for midpoint calculation)
         best_indices = None
         
-        print(f"      Aligning \"{text[:40]}{'...' if len(text) > 40 else ''}\"...")
         # 1. Try to find exact match
         for i in range(len(aligned_words)):
             for j in range(i, len(aligned_words)):
