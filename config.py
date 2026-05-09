@@ -16,8 +16,8 @@ ELEVENLABS_API_KEY = os.getenv("ELEVENLABS_API_KEY")
 if not ELEVENLABS_API_KEY:
     print("Warning: ELEVENLABS_API_KEY not set in .env file")
 
-LLM_MODEL = "grok-4.20-0309-reasoning"
-LLM_MODEL_NO_REASONING = "grok-4.20-0309-non-reasoning"
+LLM_MODEL = "grok-4.3"
+REASONING_EFFORT = "low"
 TEMPERATURE = 0.7
 MAX_TOKENS = 800
 
@@ -39,7 +39,7 @@ INPUT_DIR = os.path.join(BASE_DIR, "input")
 DEFAULT_JSON = os.path.join(INPUT_DIR, "shadowing_source_input.json")
 
 MAX_WORKERS = 4
-MAX_LLM_WORKERS = 4
+MAX_LLM_WORKERS = 10
 RETRY_ATTEMPTS = 3
 RATE_LIMIT_DELAY = 1.0
 
