@@ -141,10 +141,7 @@ class ShadowingPreparer:
         print(f"Transcribing and aligning audio (single_repeat={single_repeat})... This may take a moment.")
         aligned_words = self._get_aligned_words(sound, effective_lang)
         
-        print(f"Processing {len(blocks)} block(s)...")
         for idx, block in enumerate(blocks, 1):
-            if block.initial_text:
-                print(f"  Block {idx}/{len(blocks)}: initial sentence \"{block.initial_text[:50]}{'...' if len(block.initial_text) > 50 else ''}\"")
             # 1. Initial full sentence + break
             if block.initial_text:
                 audio = self._extract_audio(sound, block.initial_text, aligned_words, self.config.midpoint_cuts)
