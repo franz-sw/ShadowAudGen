@@ -229,7 +229,6 @@ class ShadowingPreparer:
     ) -> AudioSegment:
         """Each chunk is played twice by default, plus any extra repetitions."""
         for text, extra_repeats in chunks:
-            print(f"    Processing chunk: \"{text[:40]}{'...' if len(text) > 40 else ''}\"")
             if not text:
                 continue
             segment = self._extract_audio(sound, text, aligned_words, self.config.midpoint_cuts)
