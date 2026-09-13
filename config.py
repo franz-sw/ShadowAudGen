@@ -32,7 +32,8 @@ ELEVENLABS_MODEL_ID = "eleven_turbo_v2_5"
 # Whisper Model Configuration
 WHISPER_MODEL_STORAGE = "D:/ai/models/whisper"
 # WHISPER_MODEL_NAME = "turbo"
-WHISPER_MODEL_NAME = "large-v3"
+WHISPER_MODEL_NAME = "large-v3" #v3
+WAV2VEC2_ALIGN_MODEL_NAME = "GaborMadarasz/wav2vec2-large-mms-1b-hungarian"
 
 DB_PATH = os.path.join(BASE_DIR, "shadowing.db")
 INPUT_DIR = os.path.join(BASE_DIR, "input")
@@ -55,7 +56,7 @@ CASTOPOD_AUTH_PASSWORD = os.getenv("CASTOPOD_AUTH_PASSWORD")
 
 SHADOWING_SOURCES_BASE_URL = os.getenv("SHADOWING_SOURCES_BASE_URL")
 
-AUDIO_FILE_PREFIX = "[MK1]"
+AUDIO_FILE_PREFIX = "[MK2]"
 
 # Language settings
 DEFAULT_LANGUAGE = "hu"

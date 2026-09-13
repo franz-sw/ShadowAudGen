@@ -52,7 +52,7 @@ from pydub import AudioSegment
 import whisperx
 import numpy as np
 
-from config import WHISPER_MODEL_STORAGE, WHISPER_MODEL_NAME, SEGMENT_BREAK_MS, DEFAULT_LANGUAGE
+from config import WHISPER_MODEL_STORAGE, WHISPER_MODEL_NAME, WAV2VEC2_ALIGN_MODEL_NAME, SEGMENT_BREAK_MS, DEFAULT_LANGUAGE
 
 class AlignmentError(Exception):
     """Exception raised when audio alignment fails."""
@@ -274,7 +274,11 @@ class ShadowingPreparer:
         print("Loading alignment model...")
         # 4. Load Alignment Model (cached per language)
         if lang not in _align_models:
-            _align_models[lang] = whisperx.load_align_model(language_code=lang, device="cpu")
+            _align_models[lang] = whisperx.load_align_model(
+                language_code=lang, 
+                device="cpu",
+                model_name=WAV2VEC2_ALIGN_MODEL_NAME
+            )
         model_a, metadata = _align_models[lang]
         
         print("Aligning word-level timestamps...")
