@@ -26,8 +26,8 @@ ELEVENLABS_VOICE_ID = "polm59PrdXp5lKpce2EG"  # Main voice for answers
 # QUESTION_VOICE_ID = "RGymW84CSmfVugnA5tvA"   # Roberta - Female voice for questions
 QUESTION_VOICE_ID = "EXAVITQu4vr4xnSDxMaL"   # Sarah - Female voice for questions
 # QUESTION_VOICE_ID = "XrExE9yKIg1WjnnlVkGX"   # Matilda - Female voice for questions
-ELEVENLABS_MODEL_ID = "eleven_turbo_v2_5"
-# ELEVENLABS_MODEL_ID = "eleven_flash_v2_5"
+# ELEVENLABS_MODEL_ID = "eleven_turbo_v2_5"
+ELEVENLABS_MODEL_ID = "eleven_flash_v2_5"
 
 # Whisper Model Configuration
 WHISPER_MODEL_STORAGE = "D:/ai/models/whisper"
@@ -56,7 +56,7 @@ CASTOPOD_AUTH_PASSWORD = os.getenv("CASTOPOD_AUTH_PASSWORD")
 
 SHADOWING_SOURCES_BASE_URL = os.getenv("SHADOWING_SOURCES_BASE_URL")
 
-AUDIO_FILE_PREFIX = "[MK2]"
+AUDIO_FILE_PREFIX = "[MK1]"
 
 # Language settings
 DEFAULT_LANGUAGE = "hu"
