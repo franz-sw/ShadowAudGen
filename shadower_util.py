@@ -77,7 +77,8 @@ class ShadowingConfig:
     final_silence_ms: int = 1000
     bitrate: str = "320k"
     midpoint_cuts: bool = False
-    chunk_fade_out_ms: int = 30
+    chunk_fade_out_ms: int = 20
+    normalize_text: bool = True
 
 
 @dataclass
@@ -304,7 +305,9 @@ class ShadowingPreparer:
     ) -> AudioSegment:
         def clean_text(t: str) -> str:
             t = t.lower().translate(str.maketrans('', '', string.punctuation)).replace(" ", "")
-            return unicodedata.normalize('NFKD', t).encode('ASCII', 'ignore').decode('utf-8')
+            if self.config.normalize_text:
+                return unicodedata.normalize('NFKD', t).encode('ASCII', 'ignore').decode('utf-8')
+            return t
             
         target = clean_text(text)
         
