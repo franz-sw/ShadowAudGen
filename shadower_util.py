@@ -306,8 +306,18 @@ class ShadowingPreparer:
         aligned_words: List[dict],
         midpoint_cuts: bool
     ) -> AudioSegment:
+        chars_to_ignore = [",", "?", "¿", ".", "!", "¡", ";", "；", ":", '""', "%", '"', "", "ʿ", "·", "჻", "~", "՞",
+                   "؟", "،", "।", "॥", "«", "»", "„", "“", "”", "「", "」", "‘", "’", "《", "》", "(", ")", "[", "]",
+                   "{", "}", "=", "`", "_", "+", "<", ">", "…", "–", "°", "´", "ʾ", "‹", "›", "©", "®", "—", "→", "。",
+                   "、", "﹂", "﹁", "‧", "～", "﹏", "，", "｛", "｝", "（", "）", "［", "］", "【", "】", "‥", "〽",
+                   "『", "』", "〝", "〟", "⟨", "⟩", "〜", "：", "！", "？", "♪", "؛", "/", "\\", "º", "−", "^", "ʻ", "ˆ", " "]
+        
+        # Create a translation table to remove ignored characters
+        ignore_trans = str.maketrans('', '', ''.join(chars_to_ignore))
+
         def clean_text(t: str) -> str:
-            t = t.lower().translate(str.maketrans('', '', string.punctuation)).replace(" ", "")
+            # We use the specific chars the model was trained to ignore, plus space.
+            t = t.lower().translate(ignore_trans)
             if self.config.normalize_text:
                 return unicodedata.normalize('NFKD', t).encode('ASCII', 'ignore').decode('utf-8')
             return t
