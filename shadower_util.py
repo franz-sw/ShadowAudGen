@@ -78,9 +78,6 @@ class ShadowingConfig:
     bitrate: str = "320k"
     midpoint_cuts: bool = False
     chunk_fade_out_ms: int = 30
-    chunk_fade_in_ms: int = 10
-    word_start_pad_ms: int = -20
-    word_end_pad_ms: int = -80
     normalize_text: bool = False
 
 
@@ -404,13 +401,7 @@ class ShadowingPreparer:
             start_ms = int(aligned_words[i]["start"] * 1000)
             end_ms = int(aligned_words[j]["end"] * 1000)
 
-        # Apply padding to prevent cutting into the next word or missing the start
-        start_ms = max(0, start_ms + self.config.word_start_pad_ms)
-        end_ms = min(len(sound), end_ms + self.config.word_end_pad_ms)
-
         segment = sound[start_ms:end_ms]
-        if self.config.chunk_fade_in_ms > 0:
-            segment = segment.fade_in(self.config.chunk_fade_in_ms)
         return segment.fade_out(self.config.chunk_fade_out_ms)
 
 
