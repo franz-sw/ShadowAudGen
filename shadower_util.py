@@ -77,8 +77,8 @@ class ShadowingConfig:
     final_silence_ms: int = 1000
     bitrate: str = "320k"
     midpoint_cuts: bool = False
-    chunk_fade_out_ms: int = 20
-    normalize_text: bool = True
+    chunk_fade_out_ms: int = 30
+    normalize_text: bool = False
 
 
 @dataclass
