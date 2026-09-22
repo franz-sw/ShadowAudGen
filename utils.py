@@ -41,15 +41,15 @@ LANG_TO_EDGE_VOICE = {
 }
 
 def call_tts_api(
-        text: str,
-        output_path: str,
-        speed: float,
-        voice_id: str | None = None,
-        overwrite: bool = False,
-        previous_text: str = "",
-        stability: float = 0.5,
-        similarity_boost: float = 0.75,
-        sentence_suffix: str = "",
+    text: str,
+    output_path: str,
+    speed: float = 1.0,
+    voice_id: str | None = None,
+    overwrite: bool = False,
+    previous_text: str = "",
+    stability: float = 0.85,
+    similarity_boost: float = 0.75,
+    sentence_suffix: str = "",
 ) -> bool:
     """Call ElevenLabs TTS API with flexible voice and speed. Speed is always 1.0 for sentences per spec."""
     if not ELEVENLABS_API_KEY:
@@ -84,6 +84,7 @@ def call_tts_api(
                 "voice_settings": {
                     "stability": stability,
                     "similarity_boost": similarity_boost,
+                    "style": 0.0,
                     "speed": speed,
                     "previous_text": previous_text,
                     "use_speaker_boost": True

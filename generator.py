@@ -54,8 +54,8 @@ class AudioGenerator:
                 voice_id=ELEVENLABS_VOICE_ID,
                 speed=0.94,
                 overwrite=overwrite,
-                stability=0.6,
-                similarity_boost=0.85,
+                stability=0.85,
+                similarity_boost=0.90,
                 sentence_suffix="\n",
             ):
                 success = False
