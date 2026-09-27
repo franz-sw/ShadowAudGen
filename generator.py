@@ -55,7 +55,7 @@ class AudioGenerator:
                 speed=0.95,
                 overwrite=overwrite,
                 stability=0.90,
-                similarity_boost=0.65,
+                similarity_boost=0.67, # with 70 or 65 it cuts after an additional "a" like " ... tél. A ..."
                 sentence_suffix="\n",
             ):
                 success = False
