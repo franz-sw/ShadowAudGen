@@ -52,10 +52,10 @@ class AudioGenerator:
                 text=entry["answer"],
                 output_path=str(a_path),
                 voice_id=ELEVENLABS_VOICE_ID,
-                speed=0.95,
+                speed=1,
                 overwrite=overwrite,
-                stability=0.90,
-                similarity_boost=0.67, # with 70 or 65 it cuts after an additional "a" like " ... tél. A ..." using flash_2_5
+                stability=0.95, # with 90 or below it cuts in "s" of next word like "... csapdába sétáltunk ..."
+                similarity_boost=0.69, # with 70 or 65 it cuts after an additional "a" like " ... tél. A ..." using flash_2_5
                 sentence_suffix="\n",
             ):
                 success = False
