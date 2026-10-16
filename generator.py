@@ -17,6 +17,7 @@ from db import ShadowingDB
 
 
 _ARTICLE_CHUNK_START = re.compile(r"^a", re.IGNORECASE)
+# _ARTICLE_CHUNK_START = re.compile(r"^(a|az|azt)(?=\s|$)", re.IGNORECASE)
 
 
 def _normalize_chunk(text: str) -> str:
