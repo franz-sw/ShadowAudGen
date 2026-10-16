@@ -61,8 +61,11 @@ SHADOWING_SOURCES_BASE_URL = os.getenv("SHADOWING_SOURCES_BASE_URL")
 
 AUDIO_FILE_PREFIX = "[MK1]"
 
-# Inserted before mid-sentence repeat chunks that start with a/az/azt, before ElevenLabs TTS.
+# Inserted before mid-sentence repeat chunks whose next word starts with "a", before ElevenLabs TTS.
 ARTICLE_CHUNK_MARKER = "—"
+
+# Replaces sentence-ending periods in text sent to the TTS API.
+SENTENCE_ENDING = "—"
 
 # Language settings
 DEFAULT_LANGUAGE = "hu"

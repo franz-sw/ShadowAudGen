@@ -22,6 +22,7 @@ from config import (
     ELEVENLABS_MODEL_ID,
     QUESTION_VOICE_ID,
     DEFAULT_LANGUAGE,
+    SENTENCE_ENDING,
 )
 
 LANG_TO_EDGE_VOICE = {
@@ -65,6 +66,9 @@ def call_tts_api(
         voice_id = ELEVENLABS_VOICE_ID
 
     model_id = ELEVENLABS_MODEL_ID
+
+    if SENTENCE_ENDING:
+        text = text.replace(".", SENTENCE_ENDING)
 
     if sentence_suffix:
         text = re.sub(r'([.!?])', r'\1' + re.escape(sentence_suffix), text)

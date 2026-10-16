@@ -16,7 +16,7 @@ from shadower_util import ShadowingPreparer, ShadowingConfig
 from db import ShadowingDB
 
 
-_ARTICLE_CHUNK_START = re.compile(r"^(a|az|azt)(?=\s|$)", re.IGNORECASE)
+_ARTICLE_CHUNK_START = re.compile(r"^a", re.IGNORECASE)
 
 
 def _normalize_chunk(text: str) -> str:
@@ -138,7 +138,7 @@ class AudioGenerator:
                 speed=1,
                 overwrite=overwrite,
                 stability=0.95, # with 90 or below it cuts in "s" of next word like "... csapdába sétáltunk ..."
-                similarity_boost=0.69, # with 70 or 65 it cuts after an additional "a" like " ... tél. A ..." using flash_2_5
+                similarity_boost=0.68, # with 70 or 65 it cuts after an additional "a" like " ... tél. A ..." using flash_2_5
                 sentence_suffix="\n",
             ):
                 success = False
