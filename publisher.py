@@ -76,6 +76,16 @@ class CastopodPublisher:
     def _get_auth(self):
         return (self.username, self.password)
 
+    @staticmethod
+    def _multipart_filename(path: str, fallback: str = "file") -> str:
+        """ASCII basename. PHP 8.5 drops uploads whose filename is UTF-8 or RFC 2231."""
+        p = Path(path)
+        suffix = p.suffix.lower()
+        if not suffix.isascii() or not suffix.startswith(".") or not suffix[1:].isalnum():
+            suffix = ""
+        stem = get_slug(p.stem) or fallback
+        return f"{stem}{suffix}"
+
     def _find_export_files(self, topic: str) -> Optional[dict]:
         """Find all export files for a topic."""
         from config import OUTPUT_DIR
@@ -183,7 +193,7 @@ class CastopodPublisher:
         with ExitStack() as stack:
             audio = stack.enter_context(open(audio_file, "rb"))
             files = {
-                "audio_file": (Path(audio_file).name, audio, "audio/mpeg"),
+                "audio_file": (self._multipart_filename(audio_file, "episode"), audio, "audio/mpeg"),
             }
 
             data = {
@@ -202,16 +212,16 @@ class CastopodPublisher:
 
             if cover_file:
                 cover = stack.enter_context(open(cover_file, "rb"))
-                files["cover"] = (Path(cover_file).name, cover, "image/jpeg")
+                files["cover"] = (self._multipart_filename(cover_file, "cover"), cover, "image/jpeg")
 
             if chapters_file:
                 chapters = stack.enter_context(open(chapters_file, "rb"))
-                files["chapters_file"] = (Path(chapters_file).name, chapters, "application/json")
+                files["chapters_file"] = (self._multipart_filename(chapters_file, "chapters"), chapters, "application/json")
                 data["chapters-choice"] = "upload-file"
 
             if transcript_file:
                 transcript = stack.enter_context(open(transcript_file, "rb"))
-                files["transcript_file"] = (Path(transcript_file).name, transcript, "application/x-subrip")
+                files["transcript_file"] = (self._multipart_filename(transcript_file, "transcript"), transcript, "application/x-subrip")
                 data["transcript-choice"] = "upload-file"
 
             response = requests.post(url, files=files, data=data, auth=self._get_auth())

@@ -52,7 +52,7 @@ from pydub import AudioSegment
 import whisperx
 import numpy as np
 
-from config import WHISPER_MODEL_STORAGE, WHISPER_MODEL_NAME, SEGMENT_BREAK_MS, DEFAULT_LANGUAGE
+from config import WHISPER_MODEL_STORAGE, WHISPER_MODEL_NAME, WAV2VEC2_ALIGN_MODEL_NAME, SEGMENT_BREAK_MS, DEFAULT_LANGUAGE
 
 class AlignmentError(Exception):
     """Exception raised when audio alignment fails."""
@@ -78,6 +78,7 @@ class ShadowingConfig:
     bitrate: str = "320k"
     midpoint_cuts: bool = False
     chunk_fade_out_ms: int = 30
+    normalize_text: bool = False
 
 
 @dataclass
@@ -274,7 +275,11 @@ class ShadowingPreparer:
         print("Loading alignment model...")
         # 4. Load Alignment Model (cached per language)
         if lang not in _align_models:
-            _align_models[lang] = whisperx.load_align_model(language_code=lang, device="cpu")
+            _align_models[lang] = whisperx.load_align_model(
+                language_code=lang, 
+                device="cpu",
+                model_name=WAV2VEC2_ALIGN_MODEL_NAME
+            )
         model_a, metadata = _align_models[lang]
         
         print("Aligning word-level timestamps...")
@@ -298,9 +303,21 @@ class ShadowingPreparer:
         aligned_words: List[dict],
         midpoint_cuts: bool
     ) -> AudioSegment:
+        chars_to_ignore = [",", "?", "¿", ".", "!", "¡", ";", "；", ":", '""', "%", '"', "", "ʿ", "·", "჻", "~", "՞",
+                   "؟", "،", "।", "॥", "«", "»", "„", "“", "”", "「", "」", "‘", "’", "《", "》", "(", ")", "[", "]",
+                   "{", "}", "=", "`", "_", "+", "<", ">", "…", "–", "°", "´", "ʾ", "‹", "›", "©", "®", "—", "→", "。",
+                   "、", "﹂", "﹁", "‧", "～", "﹏", "，", "｛", "｝", "（", "）", "［", "］", "【", "】", "‥", "〽",
+                   "『", "』", "〝", "〟", "⟨", "⟩", "〜", "：", "！", "？", "♪", "؛", "/", "\\", "º", "−", "^", "ʻ", "ˆ", " "]
+        
+        # Create a translation table to remove ignored characters
+        ignore_trans = str.maketrans('', '', ''.join(chars_to_ignore))
+
         def clean_text(t: str) -> str:
-            t = t.lower().translate(str.maketrans('', '', string.punctuation)).replace(" ", "")
-            return unicodedata.normalize('NFKD', t).encode('ASCII', 'ignore').decode('utf-8')
+            # We use the specific chars the model was trained to ignore, plus space.
+            t = t.lower().translate(ignore_trans)
+            if self.config.normalize_text:
+                return unicodedata.normalize('NFKD', t).encode('ASCII', 'ignore').decode('utf-8')
+            return t
             
         target = clean_text(text)
         

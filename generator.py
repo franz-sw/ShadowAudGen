@@ -3,10 +3,90 @@ from typing import Optional
 import shutil
 import re
 
-from config import OUTPUT_DIR, QUESTION_VOICE_ID, ELEVENLABS_VOICE_ID, DEFAULT_JSON, DEFAULT_LANGUAGE
+from config import (
+    OUTPUT_DIR,
+    QUESTION_VOICE_ID,
+    ELEVENLABS_VOICE_ID,
+    DEFAULT_JSON,
+    DEFAULT_LANGUAGE,
+    ARTICLE_CHUNK_MARKER,
+)
 from utils import call_tts_api, call_local_tts, get_slug
 from shadower_util import ShadowingPreparer, ShadowingConfig
 from db import ShadowingDB
+
+
+_ARTICLE_CHUNK_START = re.compile(r"^a", re.IGNORECASE)
+# _ARTICLE_CHUNK_START = re.compile(r"^(a|az|azt)(?=\s|$)", re.IGNORECASE)
+
+
+def _normalize_chunk(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip().rstrip(".!?")
+
+
+def apply_article_chunk_marker(text: str, metadata: str, marker: str = ARTICLE_CHUNK_MARKER) -> str:
+    if not text or not metadata or not marker:
+        return text
+
+    blocks = []
+    current = None
+    in_repeat = False
+    for raw in metadata.splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        if line.startswith("[block"):
+            current = {"initial": "", "chunks": []}
+            blocks.append(current)
+            in_repeat = False
+            continue
+        if current is None:
+            continue
+        if line.startswith("[repeat"):
+            in_repeat = True
+            continue
+        if line.startswith("[/repeat]") or line.startswith("[/]"):
+            in_repeat = False
+            continue
+        if line.startswith("["):
+            continue
+        if in_repeat:
+            clean = re.sub(r"\|\+\d+\|", "", line).strip()
+            if clean:
+                current["chunks"].append(clean)
+        elif not current["initial"]:
+            current["initial"] = line
+
+    result = text
+    search_from = 0
+    for block in blocks:
+        chunks = list(block["chunks"])
+        if len(chunks) >= 2:
+            last = _normalize_chunk(chunks[-1])
+            initial = _normalize_chunk(block["initial"])
+            joined = _normalize_chunk(" ".join(chunks[:-1]))
+            if last and last in (initial, joined):
+                chunks = chunks[:-1]
+
+        for index, chunk in enumerate(chunks):
+            bare = chunk.rstrip(".!?")
+            idx = result.find(chunk, search_from)
+            matched = chunk
+            if idx < 0 and bare != chunk:
+                idx = result.find(bare, search_from)
+                matched = bare
+            if idx < 0:
+                continue
+
+            prefix = result[:idx].rstrip()
+            at_sentence_start = not prefix or prefix[-1] in ".!?"
+            if index > 0 and not at_sentence_start and _ARTICLE_CHUNK_START.match(matched):
+                already = result[max(0, idx - len(marker) - 1):idx]
+                if marker not in already:
+                    result = result[:idx] + marker + " " + result[idx:]
+                    idx += len(marker) + 1
+            search_from = idx + len(matched)
+    return result
 
 
 class AudioGenerator:
@@ -48,14 +128,18 @@ class AudioGenerator:
 
         if not a_path.exists() or overwrite:
             print(f"Generating INITIAL ANSWER audio for entry {entry_id}: '{entry['answer'][:50]}...'")
+            tts_text = apply_article_chunk_marker(
+                entry["answer"],
+                entry.get("answer_metadata", ""),
+            )
             if not call_tts_api(
-                text=entry["answer"],
+                text=tts_text,
                 output_path=str(a_path),
                 voice_id=ELEVENLABS_VOICE_ID,
-                speed=0.94,
+                speed=1,
                 overwrite=overwrite,
-                stability=0.6,
-                similarity_boost=0.85,
+                stability=0.95, # with 90 or below it cuts in "s" of next word like "... csapdába sétáltunk ..."
+                similarity_boost=0.69, # with 70 or 65 it cuts after an additional "a" like " ... tél. A ..." using flash_2_5
                 sentence_suffix="\n",
             ):
                 success = False

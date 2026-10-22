@@ -32,7 +32,11 @@ ELEVENLABS_MODEL_ID = "eleven_flash_v2_5"
 # Whisper Model Configuration
 WHISPER_MODEL_STORAGE = "D:/ai/models/whisper"
 # WHISPER_MODEL_NAME = "turbo"
-WHISPER_MODEL_NAME = "large-v2"
+WHISPER_MODEL_NAME = "large-v3" #v3
+# WAV2VEC2_ALIGN_MODEL_NAME = "jonatasgrosman/wav2vec2-large-xlsr-53-hungarian"
+WAV2VEC2_ALIGN_MODEL_NAME = "gchhablani/wav2vec2-large-xlsr-hu"
+# WAV2VEC2_ALIGN_MODEL_NAME = "GaborMadarasz/wav2vec2-large-mms-1b-hungarian"
+# WAV2VEC2_ALIGN_MODEL_NAME = "sarpba/wav2vec2-large-xlsr-53-hungarian"
 
 DB_PATH = os.path.join(BASE_DIR, "shadowing.db")
 INPUT_DIR = os.path.join(BASE_DIR, "input")
@@ -56,6 +60,12 @@ CASTOPOD_AUTH_PASSWORD = os.getenv("CASTOPOD_AUTH_PASSWORD")
 SHADOWING_SOURCES_BASE_URL = os.getenv("SHADOWING_SOURCES_BASE_URL")
 
 AUDIO_FILE_PREFIX = "[MK1]"
+
+# Inserted before mid-sentence repeat chunks whose next word starts with "a", before ElevenLabs TTS.
+ARTICLE_CHUNK_MARKER = "-"
+
+# Replaces sentence-ending periods in text sent to the TTS API.
+SENTENCE_ENDING = "—"
 
 # Language settings
 DEFAULT_LANGUAGE = "hu"

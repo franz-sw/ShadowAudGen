@@ -10,7 +10,7 @@ This project creates shadowing audios for language learning. The key workflow:
 
 1. **Input**: JSON files containing vocabulary lists, questions/answers, and special repetition markup tags
 2. **Question TTS**: Uses edge-tts to generate question audio
-3. **Answer TTS**: Uses ElevenLabs API to generate the initial answer audio
+3. **Answer TTS**: Uses ElevenLabs API to generate the initial answer audio. Mid-sentence repeat chunks whose next word starts with `a` (e.g. `a`, `az`, `alja`) get `ARTICLE_CHUNK_MARKER` (default `—`) inserted before them so the word is not clipped. Sentence-ending periods in TTS text are replaced with `SENTENCE_ENDING` (default `—`).
 4. **Shadowing Generation**: Uses **WhisperX forced alignment** to precisely locate each word in the audio, then:
    - Splits the audio into individual word segments
    - Applies custom repetition patterns defined in `answer_metadata`
