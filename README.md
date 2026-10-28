@@ -139,6 +139,11 @@ See `examples/sample_input.json`:
 
 The `answer_metadata` field contains the shadowing script with repetition markers.
 
+Extra top-level fields (for example `orig-title`, `source`) are kept with each entry. Which of them appear in the outputs is set in `config.py`:
+
+- `EPISODE_DESCRIPTION_TAGS` — Castopod episode description (currently `format`, `tone`)
+- `PDF_TAGS` — PDF header (currently `format`, `tone`, `vocabulary`)
+
 ## Project Structure
 
 ```

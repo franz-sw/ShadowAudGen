@@ -1,3 +1,4 @@
+import json
 import re
 from pathlib import Path
 import asyncio
@@ -178,3 +179,57 @@ def call_local_tts(
     
     print(f"  ❌ edge-tts failed for '{text[:10]}...'")
     return False
+
+
+def tag_label(key: str) -> str:
+    """Display label for a source JSON field name."""
+    return key.replace("-", " ").replace("_", " ").title()
+
+
+def metadata_tag_value(key: str, metadata: dict):
+    """Return a display value for a source JSON field, or None if absent or empty."""
+    if not metadata or key not in metadata:
+        return None
+    value = metadata.get(key)
+    if value is None:
+        return None
+
+    if key == "vocabulary":
+        if isinstance(value, str):
+            try:
+                value = json.loads(value)
+            except (json.JSONDecodeError, TypeError):
+                value = []
+        unused = metadata.get("unused_input_words") or []
+        if isinstance(value, list):
+            value = [w for w in value if w not in unused]
+
+    if isinstance(value, str):
+        text = value.strip()
+        return text or None
+    if isinstance(value, (list, tuple)):
+        # Keep an empty vocabulary list so the PDF still shows it, matching previous output.
+        if not value and key != "vocabulary":
+            return None
+        return list(value)
+    if isinstance(value, dict):
+        if not value:
+            return None
+        return json.dumps(value, ensure_ascii=False)
+    text = str(value).strip()
+    return text or None
+
+
+def format_tag_line(key: str, metadata: dict, markdown: bool = False) -> Optional[str]:
+    """Format one configured metadata tag for a description or PDF line."""
+    value = metadata_tag_value(key, metadata)
+    if value is None:
+        return None
+    if isinstance(value, list):
+        shown = ", ".join(str(v) for v in value) if markdown else str(value)
+    else:
+        shown = str(value)
+    label = tag_label(key)
+    if markdown:
+        return f"**{label}:** {shown}"
+    return f"{label}: {shown}"

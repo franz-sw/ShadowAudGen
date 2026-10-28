@@ -21,29 +21,31 @@ class ShadowingDB:
         source_file = Path(json_path).name
         topic = data.get("topic", Path(json_path).stem.replace("_", " ").title())
 
-        self.topic_metadata = {
+        # Keep every top-level JSON field so description/PDF tag lists can select them.
+        meta = {
             "source_file": source_file,
             "topic": topic,
-            "vocabulary": data.get("vocabulary", []),
-            "unused_input_words": data.get("unused_input_words", []),
-            "format": data.get("format"),
-            "tone": data.get("tone")
         }
+        for key, value in data.items():
+            if key in ("shadowing_source", "topic"):
+                continue
+            meta[key] = value
+        meta.setdefault("vocabulary", [])
+        meta.setdefault("unused_input_words", [])
+        meta.setdefault("format", None)
+        meta.setdefault("tone", None)
+        self.topic_metadata = meta
 
         self.entries_cache = []
         for idx, item in enumerate(data.get("shadowing_source", []), start=1):
-            self.entries_cache.append({
+            entry = dict(meta)
+            entry.update({
                 "id": idx,
-                "source_file": source_file,
-                "topic": topic,
                 "question": item["question"],
                 "answer": item["answer"],
                 "answer_metadata": item.get("answer_metadata", ""),
-                "vocabulary": data.get("vocabulary", []),
-                "unused_input_words": data.get("unused_input_words", []),
-                "format": data.get("format"),
-                "tone": data.get("tone")
             })
+            self.entries_cache.append(entry)
         print(f"Loaded {len(self.entries_cache)} entries from {source_file}")
         return self.entries_cache
 

@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import Optional, Tuple, List
 from contextlib import ExitStack
 
-from config import CASTOPOD_HOST, CASTOPOD_PODCAST_ID, CASTOPOD_USER_ID, CASTOPOD_AUTH_USERNAME, CASTOPOD_AUTH_PASSWORD, SHADOWING_SOURCES_BASE_URL
-from utils import get_slug
+from config import CASTOPOD_HOST, CASTOPOD_PODCAST_ID, CASTOPOD_USER_ID, CASTOPOD_AUTH_USERNAME, CASTOPOD_AUTH_PASSWORD, SHADOWING_SOURCES_BASE_URL, EPISODE_DESCRIPTION_TAGS
+from utils import get_slug, format_tag_line
 from pathlib import Path
 
 
@@ -140,25 +140,27 @@ class CastopodPublisher:
         return files
 
     def _generate_description(self, entries: List[dict], pdf_url: str = None) -> str:
-        """Generate description with PDF link, tone, format, and transcript in markdown."""
+        """Generate description with PDF link, configured metadata tags, and transcript in markdown."""
         parts = []
 
         if pdf_url:
             parts.append(f"[Transcript (with German Translation)]({pdf_url})")
 
-        # Add tone and format from first entry metadata (matches exporter.py logic)
+        # Metadata tags from config.EPISODE_DESCRIPTION_TAGS (first entry).
         if entries:
             metadata = entries[0]
-            tone = metadata.get("tone", "")
-            fmt = metadata.get("format", "")
-            if fmt or tone:
+            tag_lines = []
+            for key in EPISODE_DESCRIPTION_TAGS:
+                line = format_tag_line(key, metadata, markdown=True)
+                if line:
+                    tag_lines.append(line)
+            if tag_lines:
                 if pdf_url:
                     parts.append("")
-                if fmt:
-                    parts.append(f"**Format:** {fmt}")
-                    parts.append("")
-                if tone:
-                    parts.append(f"**Tone:** {tone}")
+                for i, line in enumerate(tag_lines):
+                    parts.append(line)
+                    if i < len(tag_lines) - 1:
+                        parts.append("")
                 parts.append("")
 
         parts.append("---")

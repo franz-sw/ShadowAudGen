@@ -3,10 +3,10 @@ import re
 from pathlib import Path
 from typing import List, Dict, Optional, Tuple
 
-from config import OUTPUT_DIR, QUESTION_VOICE_ID, ELEVENLABS_VOICE_ID, DEFAULT_JSON, DEFAULT_LANGUAGE, AUDIO_FILE_PREFIX
+from config import OUTPUT_DIR, QUESTION_VOICE_ID, ELEVENLABS_VOICE_ID, DEFAULT_JSON, DEFAULT_LANGUAGE, AUDIO_FILE_PREFIX, PDF_TAGS
 from llm_util import translate_to_german
 from db import ShadowingDB
-from utils import get_slug
+from utils import get_slug, format_tag_line
 from pydub import AudioSegment
 from fpdf import FPDF
 
@@ -311,26 +311,12 @@ class Exporter:
         pdf.set_font("Segoe UI", size=11)
 
         metadata = topic_entries[0]
-        vocabulary = metadata.get("vocabulary", [])
-        tone = metadata.get("tone", "")
-        fmt = metadata.get("format", "")
-        vocab_str = metadata.get("vocabulary", "")
-
-        if isinstance(vocabulary, str):
-            try:
-                vocabulary = json.loads(vocabulary)
-            except:
-                vocabulary = []
-
-        unused = metadata.get("unused_input_words", [])
-        vocabulary = [w for w in vocabulary if w not in unused] if isinstance(vocabulary, list) else vocabulary
 
         pdf.set_font("Segoe UI", "", 12)
-        pdf.cell(0, 8, f"Format: {fmt}")
-        pdf.ln()
-        pdf.cell(0, 8, f"Tone: {tone}")
-        pdf.ln()
-        pdf.multi_cell(0, 8, f"Vocabulary: {vocabulary}", new_x="LMARGIN", new_y="NEXT")
+        for key in PDF_TAGS:
+            line = format_tag_line(key, metadata)
+            if line:
+                pdf.multi_cell(0, 8, line, new_x="LMARGIN", new_y="NEXT")
         pdf.ln(10)
 
         for entry in topic_entries:

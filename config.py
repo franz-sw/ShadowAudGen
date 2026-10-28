@@ -69,3 +69,17 @@ SENTENCE_ENDING = "—"
 
 # Language settings
 DEFAULT_LANGUAGE = "hu"
+
+# Top-level JSON fields written into the Castopod episode description (before the transcript).
+# Add further source fields here, e.g. "orig-title", "source".
+EPISODE_DESCRIPTION_TAGS = [
+    "format",
+    "tone",
+]
+
+# Top-level JSON fields written into the PDF header.
+PDF_TAGS = [
+    "format",
+    "tone",
+    "vocabulary",
+]
