@@ -30,10 +30,6 @@ class ShadowingDB:
             if key in ("shadowing_source", "topic"):
                 continue
             meta[key] = value
-        meta.setdefault("vocabulary", [])
-        meta.setdefault("unused_input_words", [])
-        meta.setdefault("format", None)
-        meta.setdefault("tone", None)
         self.topic_metadata = meta
 
         self.entries_cache = []

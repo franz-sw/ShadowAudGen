@@ -208,8 +208,7 @@ def metadata_tag_value(key: str, metadata: dict):
         text = value.strip()
         return text or None
     if isinstance(value, (list, tuple)):
-        # Keep an empty vocabulary list so the PDF still shows it, matching previous output.
-        if not value and key != "vocabulary":
+        if not value:
             return None
         return list(value)
     if isinstance(value, dict):

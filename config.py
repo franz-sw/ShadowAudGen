@@ -72,12 +72,14 @@ DEFAULT_LANGUAGE = "hu"
 
 # Top-level JSON fields written into the Castopod episode description (before the transcript).
 # Add further source fields here, e.g. "orig-title", "source".
+# A listed tag that is missing from the JSON is skipped.
 EPISODE_DESCRIPTION_TAGS = [
     "format",
     "tone",
 ]
 
 # Top-level JSON fields written into the PDF header.
+# A listed tag that is missing from the JSON is skipped.
 PDF_TAGS = [
     "format",
     "tone",

@@ -144,6 +144,8 @@ Extra top-level fields (for example `orig-title`, `source`) are kept with each e
 - `EPISODE_DESCRIPTION_TAGS` — Castopod episode description (currently `format`, `tone`)
 - `PDF_TAGS` — PDF header (currently `format`, `tone`, `vocabulary`)
 
+A tag listed there but missing from the JSON is skipped.
+
 ## Project Structure
 
 ```
