@@ -33,8 +33,8 @@ ELEVENLABS_MODEL_ID = "eleven_flash_v2_5"
 WHISPER_MODEL_STORAGE = "D:/ai/models/whisper"
 # WHISPER_MODEL_NAME = "turbo"
 WHISPER_MODEL_NAME = "large-v3" #v3
-# WAV2VEC2_ALIGN_MODEL_NAME = "jonatasgrosman/wav2vec2-large-xlsr-53-hungarian"
-WAV2VEC2_ALIGN_MODEL_NAME = "gchhablani/wav2vec2-large-xlsr-hu"
+WAV2VEC2_ALIGN_MODEL_NAME = "jonatasgrosman/wav2vec2-large-xlsr-53-hungarian"
+# WAV2VEC2_ALIGN_MODEL_NAME = "gchhablani/wav2vec2-large-xlsr-hu"
 # WAV2VEC2_ALIGN_MODEL_NAME = "GaborMadarasz/wav2vec2-large-mms-1b-hungarian"
 # WAV2VEC2_ALIGN_MODEL_NAME = "sarpba/wav2vec2-large-xlsr-53-hungarian"
 
@@ -59,29 +59,31 @@ CASTOPOD_AUTH_PASSWORD = os.getenv("CASTOPOD_AUTH_PASSWORD")
 
 SHADOWING_SOURCES_BASE_URL = os.getenv("SHADOWING_SOURCES_BASE_URL")
 
-AUDIO_FILE_PREFIX = "[MK1]"
+AUDIO_FILE_PREFIX = "[MK3]"
 
 # Inserted before mid-sentence repeat chunks whose next word starts with "a", before ElevenLabs TTS.
-ARTICLE_CHUNK_MARKER = "-"
+ARTICLE_CHUNK_MARKER = '<break time="50ms"/>'
 
 # Replaces sentence-ending periods in text sent to the TTS API.
-SENTENCE_ENDING = "—"
+SENTENCE_ENDING = '.<break time="50ms"/>'
 
 # Language settings
 DEFAULT_LANGUAGE = "hu"
 
 # Top-level JSON fields written into the Castopod episode description (before the transcript).
 # Add further source fields here, e.g. "orig-title", "source".
-# A listed tag that is missing from the JSON is skipped.
 EPISODE_DESCRIPTION_TAGS = [
     "format",
     "tone",
+    "orig-title",
+    "source"
 ]
 
 # Top-level JSON fields written into the PDF header.
-# A listed tag that is missing from the JSON is skipped.
 PDF_TAGS = [
     "format",
     "tone",
+    "orig-title",
+    "source",
     "vocabulary",
 ]
