@@ -181,6 +181,23 @@ def call_local_tts(
     return False
 
 
+_YOUTUBE_VIDEO_ID_RE = re.compile(
+    r"(?:"
+    r"youtu\.be/"
+    r"|youtube(?:-nocookie)?\.com/(?:embed/|shorts/|live/|v/)"
+    r"|youtube(?:-nocookie)?\.com/[^\s\"']*[?&]v="
+    r")([A-Za-z0-9_-]{11})"
+)
+
+
+def extract_youtube_video_id(source) -> Optional[str]:
+    """Return an 11-character YouTube video ID from a source string, or None."""
+    if not isinstance(source, str) or not source.strip():
+        return None
+    match = _YOUTUBE_VIDEO_ID_RE.search(source)
+    return match.group(1) if match else None
+
+
 def tag_label(key: str) -> str:
     """Display label for a source JSON field name."""
     return key.replace("-", " ").replace("_", " ").title()
