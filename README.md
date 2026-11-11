@@ -146,7 +146,7 @@ Extra top-level fields (for example `orig-title`, `source`) are kept with each e
 
 A tag listed there but missing from the JSON is skipped.
 
-If `source` contains a YouTube URL, the video ID is appended in brackets to all three episode titles (shadowing, plain, and single), for example `80 - [MK3][PLAIN] - Topic [YBM-gGftTtY]`. Sources without a YouTube video ID are left unchanged.
+If `source` is set, it is appended in brackets to all three episode titles (shadowing, plain, and single). A YouTube URL contributes only its video ID, for example `80 - [MK3][PLAIN] - Topic [YBM-gGftTtY]`; any other non-empty source is appended in full. Episodes without a `source` are left unchanged.
 
 ## Project Structure
 

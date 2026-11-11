@@ -6,7 +6,7 @@ from typing import List, Dict, Optional, Tuple
 from config import OUTPUT_DIR, QUESTION_VOICE_ID, ELEVENLABS_VOICE_ID, DEFAULT_JSON, DEFAULT_LANGUAGE, AUDIO_FILE_PREFIX, PDF_TAGS
 from llm_util import translate_to_german
 from db import ShadowingDB
-from utils import get_slug, format_tag_line, extract_youtube_video_id
+from utils import get_slug, format_tag_line, source_title_tag
 from pydub import AudioSegment
 from fpdf import FPDF
 
@@ -85,8 +85,8 @@ class Exporter:
         plain_files.sort(key=lambda x: x[0])
 
         episode_num = self._get_next_episode_number()
-        youtube_id = extract_youtube_video_id(entries[0].get("source") if entries else None)
-        title_suffix = f" [{youtube_id}]" if youtube_id else ""
+        source_tag = source_title_tag(entries[0].get("source") if entries else None)
+        title_suffix = f" [{source_tag}]" if source_tag else ""
         base_name = f"{episode_num} - {AUDIO_FILE_PREFIX} - {topic}{title_suffix}"
         single_base_name = f"{episode_num} - {AUDIO_FILE_PREFIX}[SINGLE] - {topic}{title_suffix}"
         plain_base_name = f"{episode_num} - {AUDIO_FILE_PREFIX}[PLAIN] - {topic}{title_suffix}"

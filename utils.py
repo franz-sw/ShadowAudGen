@@ -198,6 +198,22 @@ def extract_youtube_video_id(source) -> Optional[str]:
     return match.group(1) if match else None
 
 
+def source_title_tag(source) -> Optional[str]:
+    """Bracket content for episode titles built from a source value.
+
+    The YouTube video ID if the source contains one, otherwise the whole
+    source. Returns None when the source is missing, None, or empty.
+    """
+    if source is None:
+        return None
+    youtube_id = extract_youtube_video_id(source)
+    if youtube_id:
+        return youtube_id
+    text = source if isinstance(source, str) else str(source)
+    text = text.strip()
+    return text or None
+
+
 def tag_label(key: str) -> str:
     """Display label for a source JSON field name."""
     return key.replace("-", " ").replace("_", " ").title()
